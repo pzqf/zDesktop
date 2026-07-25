@@ -189,6 +189,34 @@ public static class Win32
 
     public const uint MSGFLT_ALLOW = 1;
 
+    // ===== 前台窗口变化事件（焦点驱动轮询的基础）=====
+
+    /// <summary>
+    /// 前台窗口切换事件。
+    ///
+    /// 用事件而非定时器查询焦点，是「桌面未聚焦时完全不轮询」（§4.2 决策 4、
+    /// §八 空闲态 CPU &lt; 0.1%）能成立的前提 —— 哪怕 1 秒一次的焦点轮询
+    /// 也会让空闲态挂着一个常驻定时器。
+    /// </summary>
+    public const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
+
+    /// <summary>回调在本进程外调用，不注入目标进程 —— 对杀软友好</summary>
+    public const uint WINEVENT_OUTOFCONTEXT = 0x0000;
+
+    /// <summary>不接收本进程自身产生的事件</summary>
+    public const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
+
+    public delegate void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd,
+        int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc,
+        WinEventProc lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+
     // ===== 桌面 ListView 跨进程控制（分区功能地基，M2 spike 验证）=====
 
     private const int LVM_FIRST = 0x1000;

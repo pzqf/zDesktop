@@ -9,6 +9,7 @@ using zDesktop.Shell.Automation;
 using zDesktop.Shell.Classifier;
 using zDesktop.Shell.Desktop;
 using zDesktop.Shell.DesktopIcons;
+using zDesktop.Shell.Fences;
 using zDesktop.Shell.Hotkeys;
 using zDesktop.Shell.Interop;
 using zDesktop.Shell.Launcher;
@@ -60,6 +61,9 @@ public partial class App : Application
 
     /// <summary>显示器重建防抖 —— 热插拔时系统会连发多条消息</summary>
     private System.Windows.Threading.DispatcherTimer? _rebuildDebounce;
+
+    /// <summary>每屏的分区层，键为显示器稳定标识</summary>
+    private readonly Dictionary<string, FenceLayer> _fenceLayers = new();
     private readonly WidgetRegistry _registry = new();
     private readonly LayoutStore _layoutStore = new();
     private readonly DesktopIconStore _iconStore = new();
@@ -90,6 +94,9 @@ public partial class App : Application
 
     /// <summary>系统状态还原账本 —— 强杀/崩溃/卸载三条路径共用</summary>
     private readonly RestoreJournal _restoreJournal = RestoreJournal.Load();
+
+    /// <summary>分区功能总控（M3）。原生控制器连不上时整体降级为不可用。</summary>
+    private FenceController? _fences;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -122,7 +129,12 @@ public partial class App : Application
         // 1. 注册所有可用组件
         RegisterWidgets();
 
-        // 2. 按显示器建立覆盖层（每屏一个），并恢复组件布局
+        // 2. 分区功能初始化 —— 必须在建覆盖层之前，因为每屏要挂一个分区层
+        _fences = new FenceController(_restoreJournal);
+        _fences.Initialize();
+        _fences.RenameRequested += OnFenceRenameRequested;
+
+        // 3. 按显示器建立覆盖层（每屏一个），并恢复组件布局
         BuildOverlays();
 
         // 5. 启动系统托盘
@@ -136,6 +148,9 @@ public partial class App : Application
         _tray.ShowFileClassify += () => OnShowMainWindow("file-classify");
         _tray.ShowAutomation += () => OnShowMainWindow("automation-rules");
         _tray.ShowSettings += () => OnShowMainWindow("settings");
+        _tray.ToggleFenceEditMode += OnToggleFenceEditMode;
+        _tray.OrganizeFences += OnOrganizeFences;
+        _tray.UndoOrganize += OnUndoOrganize;
         _tray.ExitRequested += OnExitRequested;
 
         // 6. 效率工具初始化
@@ -150,6 +165,14 @@ public partial class App : Application
         _fullscreenGuard = new FullscreenGuard();
         _fullscreenGuard.FullscreenChanged += OnFullscreenChanged;
         _fullscreenGuard.Start();
+
+        // 8. 分区开始工作（焦点驱动轮询 + 首次归位与合成）
+        _fences?.Start();
+        if (_fences is { IsAvailable: true, IsBlockedByAutoArrange: true })
+        {
+            _tray?.ShowBalloon("zDesktop",
+                "桌面的「自动排列图标」已开启，分区功能无法生效。请右键桌面 → 查看 → 取消勾选「自动排列图标」。");
+        }
 
         Console.WriteLine($"[App] zDesktop 已启动 — {_overlays.Count} 个显示器覆盖层 / 组件 / 托盘 / 效率工具已就绪");
     }
@@ -169,6 +192,12 @@ public partial class App : Application
         foreach (var monitor in monitors)
         {
             var overlay = new MonitorOverlay(monitor);
+
+            // 分区层插到组件宿主下方：组件应当浮在分区标题栏之上
+            var fenceLayer = new FenceLayer();
+            overlay.InsertLayerBelowWidgets(fenceLayer);
+            _fenceLayers[monitor.Key] = fenceLayer;
+            _fences?.AttachLayer(fenceLayer, monitor.Key);
 
             overlay.Host.LayoutChanged += SaveLayout;
             overlay.Host.SettingsRequested += OnWidgetSettingsRequested;
@@ -246,6 +275,10 @@ public partial class App : Application
 
         if (overlay.Host.HitTest(point)) return true;
 
+        // 分区：默认态只有标题栏命中，编辑模式下整层命中
+        if (_fenceLayers.TryGetValue(overlay.Monitor.Key, out var fenceLayer) && fenceLayer.HitTest(point))
+            return true;
+
         // zDesktop 自渲染图标模式（实验）— 整屏捕获，空白用于取消选中
         if (isPrimary && _zdesktopIconMode && _iconLayer is { Visibility: Visibility.Visible })
             return true;
@@ -266,6 +299,7 @@ public partial class App : Application
             overlay.Window.Close();
         }
         _overlays.Clear();
+        _fenceLayers.Clear();
         _primary = null;
         _iconLayer = null;
         _desktopSearchBar = null;
@@ -391,6 +425,86 @@ public partial class App : Application
     // 专注模式随控制中心一并移除（设计案 v3.1 §3.4 不做清单）。
     // 「临时隐藏全部组件」的需求由托盘的「隐藏桌面组件」承担，见 OnToggleWidgets。
 
+    // ===== 分区（M3）=====
+
+    /// <summary>切换分区编辑模式 —— 开启后覆盖层整层接管鼠标</summary>
+    private void OnToggleFenceEditMode()
+    {
+        if (_fences == null || _tray == null) return;
+
+        if (!_fences.IsAvailable)
+        {
+            _tray.ShowBalloon("zDesktop", $"分区功能不可用：{_fences.UnavailableReason}");
+            return;
+        }
+
+        _fences.EditMode = !_fences.EditMode;
+        _tray.UpdateFenceEditCheck(_fences.EditMode);
+
+        if (_fences.EditMode)
+            _tray.ShowBalloon("zDesktop", "分区编辑模式已开启：在桌面空白处拖拽即可新建分区。再次点击托盘菜单退出。");
+    }
+
+    /// <summary>一键整理 —— 先预览让用户确认，再执行（§二 原则 3）</summary>
+    private void OnOrganizeFences()
+    {
+        if (_fences == null || _tray == null) return;
+
+        if (!_fences.IsAvailable)
+        {
+            _tray.ShowBalloon("zDesktop", $"分区功能不可用：{_fences.UnavailableReason}");
+            return;
+        }
+
+        if (_fences.FenceCount == 0)
+        {
+            _tray.ShowBalloon("zDesktop", "还没有分区。先开启「分区编辑模式」在桌面上拖出一个分区。");
+            return;
+        }
+
+        var preview = _fences.PreviewOrganize();
+        var total = preview.Values.Sum(v => v.Count);
+
+        if (total == 0)
+        {
+            _tray.ShowBalloon("zDesktop", "没有需要整理的文件（未归属的文件都不匹配现有分区规则）。");
+            return;
+        }
+
+        // 永不在用户确认前移动文件
+        var answer = System.Windows.MessageBox.Show(
+            $"将把 {total} 个文件归入 {preview.Count} 个分区。\n\n执行前会自动保存快照，可随时撤销。\n\n继续吗？",
+            "一键整理", System.Windows.MessageBoxButton.OKCancel, System.Windows.MessageBoxImage.Question);
+
+        if (answer != System.Windows.MessageBoxResult.OK) return;
+
+        var result = _fences.Organize();
+        _tray.ShowBalloon("zDesktop", result.Succeeded
+            ? $"已整理 {result.AssignedCount} 个文件。可从托盘菜单「分区 → 撤销上次整理」还原。"
+            : "整理已中止：快照保存失败，未执行任何修改。");
+    }
+
+    /// <summary>撤销最近一次整理</summary>
+    private void OnUndoOrganize()
+    {
+        if (_fences == null || _tray == null) return;
+
+        var restored = _fences.UndoLatest();
+        _tray.ShowBalloon("zDesktop", restored >= 0
+            ? $"已撤销，还原 {restored} 个图标位置。"
+            : "没有可撤销的整理记录。");
+    }
+
+    /// <summary>分区重命名 —— 弹输入框</summary>
+    private void OnFenceRenameRequested(zDesktop.Core.Fences.Fence fence)
+    {
+        Current.Dispatcher.BeginInvoke(new Action(() =>
+        {
+            var input = TextInputWindow.Prompt("重命名分区", "分区名称：", fence.Name);
+            if (input != null) _fences?.RenameFence(fence, input);
+        }));
+    }
+
     // ===== 桌面图标 =====
 
     /// <summary>切换桌面图标模式：zDesktop 渲染 ↔ 系统原生</summary>
@@ -487,6 +601,9 @@ public partial class App : Application
 
         foreach (var overlay in _overlays)
             overlay.Host.RepositionWidgets();
+
+        // 分区的坐标空间依赖显示器配置，必须一并重建
+        _fences?.OnDisplayChanged();
 
         // 重建期间若正处于全屏让位状态，新覆盖层需要立即跟上
         if (_fullscreenGuard?.IsFullscreen == true)
@@ -760,6 +877,9 @@ public partial class App : Application
         _rebuildDebounce?.Stop();
         _automation.Stop();
         _hotkeys?.Dispose();
+
+        // 分区：落盘并还原壁纸（零破坏契约 —— 退出后桌面须与未安装时一致）
+        _fences?.Dispose();
 
         SaveLayout();
         SaveIconLayout();

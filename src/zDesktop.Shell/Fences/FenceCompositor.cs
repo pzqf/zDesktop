@@ -238,6 +238,30 @@ public sealed class FenceCompositor : IDisposable
         return s.Length <= 64 ? s : s[^64..];
     }
 
+    /// <summary>
+    /// 还原单个显示器的原始壁纸。
+    ///
+    /// 该屏上的分区被全部删除后调用 —— 没有分区就不该继续占着用户的壁纸。
+    /// 当前壁纸不是我们的产物时直接跳过（用户或第三方工具已经换过了）。
+    /// </summary>
+    public bool RestoreMonitor(string monitorId)
+    {
+        var current = _surface.GetWallpaper(monitorId);
+        if (!IsOurOutput(current)) return false;
+
+        var original = _journal.GetRememberedWallpaper(monitorId);
+        if (string.IsNullOrEmpty(original) || !File.Exists(original)) return false;
+
+        if (_surface.SetWallpaper(monitorId, original))
+        {
+            _journal.ForgetWallpaper(monitorId);
+            Console.WriteLine($"[FenceCompositor] 该屏已无分区，壁纸已还原");
+            return true;
+        }
+
+        return false;
+    }
+
     /// <summary>还原全部显示器的原始壁纸并清理缓存</summary>
     public void RestoreAll()
     {

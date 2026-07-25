@@ -20,6 +20,7 @@ public sealed class TrayIconManager : IDisposable
     private readonly ToolStripMenuItem _toggleItem;
     private readonly ToolStripMenuItem _iconModeItem;
     private readonly ToolStripMenuItem _startupItem;
+    private readonly ToolStripMenuItem _fenceEditItem;
     private bool _widgetsVisible = true;
 
     /// <summary>切换组件可见性</summary>
@@ -46,6 +47,17 @@ public sealed class TrayIconManager : IDisposable
     /// <summary>打开设置</summary>
     public event Action? ShowSettings;
 
+    // ===== 分区（M3）=====
+
+    /// <summary>切换分区编辑模式</summary>
+    public event Action? ToggleFenceEditMode;
+
+    /// <summary>一键整理</summary>
+    public event Action? OrganizeFences;
+
+    /// <summary>撤销最近一次整理</summary>
+    public event Action? UndoOrganize;
+
     /// <summary>退出程序</summary>
     public event Action? ExitRequested;
 
@@ -66,6 +78,23 @@ public sealed class TrayIconManager : IDisposable
 
         var addWidgetItem = new ToolStripMenuItem("添加组件", null, (_, _) => ShowWidgetPanel?.Invoke());
         menu.Items.Add(addWidgetItem);
+
+        menu.Items.Add(new ToolStripSeparator());
+
+        // ===== 分区 =====
+        // 编辑模式是显式开关：开启后覆盖层整层接管鼠标，可拖拽新建/缩放分区；
+        // 关闭后恢复透传，桌面图标照常可点（零破坏契约）
+        _fenceEditItem = new ToolStripMenuItem("分区编辑模式", null, (_, _) => ToggleFenceEditMode?.Invoke())
+        {
+            CheckOnClick = false,
+            Checked = false,
+        };
+        menu.Items.Add(_fenceEditItem);
+
+        var fenceMenu = new ToolStripMenuItem("分区");
+        fenceMenu.DropDownItems.Add("一键整理", null, (_, _) => OrganizeFences?.Invoke());
+        fenceMenu.DropDownItems.Add("撤销上次整理", null, (_, _) => UndoOrganize?.Invoke());
+        menu.Items.Add(fenceMenu);
 
         // 功能入口 —— 与设置窗口的 6 个导航页保持一致（设计案 v3.1 §3.2）
         var toolsMenu = new ToolStripMenuItem("功能中心");
@@ -124,6 +153,12 @@ public sealed class TrayIconManager : IDisposable
     public void UpdateStartupCheck(bool enabled)
     {
         _startupItem.Checked = enabled;
+    }
+
+    /// <summary>更新分区编辑模式勾选状态</summary>
+    public void UpdateFenceEditCheck(bool editing)
+    {
+        _fenceEditItem.Checked = editing;
     }
 
     /// <summary>显示气泡通知</summary>
