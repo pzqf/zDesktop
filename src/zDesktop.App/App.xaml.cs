@@ -41,10 +41,29 @@ namespace zDesktop.App;
 /// </summary>
 public partial class App : Application
 {
-    private DesktopOverlayWindow? _overlay;
-    private WidgetHost? _widgetHost;
+    /// <summary>
+    /// 每个显示器一个覆盖层（设计案 v3.1 §八）。
+    /// v2.3 只在主屏建覆盖层，副屏完全没有 zDesktop。
+    /// </summary>
+    private readonly List<MonitorOverlay> _overlays = new();
+
+    /// <summary>主显示器覆盖层 —— 图标层、搜索框等单例图层只挂在它上面</summary>
+    private MonitorOverlay? _primary;
+
+    /// <summary>主屏覆盖层窗口的便捷访问（图标层还原等操作只针对原生图标层，与屏无关）</summary>
+    private DesktopOverlayWindow? _overlay => _primary?.Window;
+
+    /// <summary>主屏组件宿主 —— 主窗口的组件页仍按主屏操作（多屏组件管理属 M5）</summary>
+    private WidgetHost? _widgetHost => _primary?.Host;
+
     private DesktopIconLayer? _iconLayer;
     private DesktopSearchBar? _desktopSearchBar;
+
+    /// <summary>全屏应用检测 —— 全屏期间隐藏覆盖层并停摆定时器</summary>
+    private FullscreenGuard? _fullscreenGuard;
+
+    /// <summary>显示器重建防抖 —— 热插拔时系统会连发多条消息</summary>
+    private System.Windows.Threading.DispatcherTimer? _rebuildDebounce;
     private readonly WidgetRegistry _registry = new();
     private readonly LayoutStore _layoutStore = new();
     private readonly DesktopIconStore _iconStore = new();
@@ -94,68 +113,8 @@ public partial class App : Application
         // 1. 注册所有可用组件
         RegisterWidgets();
 
-        // 2. 创建接管窗口 + 图标层 + 组件宿主
-        _overlay = new DesktopOverlayWindow();
-        _iconLayer = new DesktopIconLayer();
-        _widgetHost = new WidgetHost();
-        _desktopSearchBar = new DesktopSearchBar();
-
-        // 分层组装：图标层在底（z 序低），组件层在上（z 序高），搜索框最上层右上角
-        var grid = new Grid();
-        // 默认原生图标模式 — 自渲染图标层收起，原生 SHELLDLL_DefView 保持可见可用
-        _iconLayer.Visibility = _zdesktopIconMode ? Visibility.Visible : Visibility.Collapsed;
-        grid.Children.Add(_iconLayer);   // 底层 — 桌面图标
-        grid.Children.Add(_widgetHost);  // 上层 — 浮动组件
-        // 搜索框 — 右上角常驻
-        _desktopSearchBar.HorizontalAlignment = HorizontalAlignment.Right;
-        _desktopSearchBar.VerticalAlignment = VerticalAlignment.Top;
-        _desktopSearchBar.Margin = new Thickness(0, 16, 16, 0);
-        grid.Children.Add(_desktopSearchBar);
-        _overlay.Content = grid;
-
-        // 桌面搜索框回车 → 打开主窗口全局搜索页并传入关键词
-        _desktopSearchBar.SearchRequested += OnDesktopSearch;
-
-        // HitTest：zDesktop 图标模式下始终捕获（空白区域交给图标层处理）；
-        // 原生模式下仅组件区域捕获，空白透传给原生桌面
-        _overlay.HitTestCallback = point =>
-        {
-            // 搜索框区域始终捕获
-            if (_desktopSearchBar!.Visibility == Visibility.Visible &&
-                IsPointInSearchBar(point)) return true;
-            // 组件区域始终捕获
-            if (_widgetHost!.HitTest(point)) return true;
-            // zDesktop 图标模式 — 图标区域或空白都捕获（空白用于取消选中）
-            if (_zdesktopIconMode && _iconLayer!.Visibility == Visibility.Visible)
-                return true;
-            // 原生模式 — 空白透传给原生桌面
-            return false;
-        };
-
-        // 3. 加载布局：有配置则恢复，无则用默认
-        var layout = _layoutStore.Load();
-        if (layout != null && layout.Widgets.Count > 0)
-        {
-            RestoreLayout(layout);
-            // 加载后立即落盘一次 — 确保配置迁移（如 v1→v2）结果持久化，
-            // 不依赖退出时保存（异常退出时 OnExit 可能不执行）
-            SaveLayout();
-        }
-        else
-        {
-            LoadDefaultLayout();
-        }
-
-        // 4. 订阅布局变更 → 自动保存
-        _widgetHost.LayoutChanged += SaveLayout;
-        // 组件设置按钮 → 弹出设置面板
-        _widgetHost.SettingsRequested += OnWidgetSettingsRequested;
-        // 图标层首次获得尺寸后加载桌面图标
-        _iconLayer.SizeChanged += OnIconLayerSized;
-        // overlay 就绪后（HWND 已就绪）隐藏原生桌面图标层
-        _overlay.Ready += OnOverlayReady;
-        // 显示器配置变更 → 重新定位组件
-        _overlay.DisplayChanged += OnDisplayChanged;
+        // 2. 按显示器建立覆盖层（每屏一个），并恢复组件布局
+        BuildOverlays();
 
         // 5. 启动系统托盘
         _tray = new TrayIconManager();
@@ -181,12 +140,148 @@ public partial class App : Application
         _automation.Start();
         Console.WriteLine("[App] 效率工具服务已初始化：应用索引 / 文件索引 / 自动化监控");
 
-        _overlay.Show();
+        // 7. 全屏检测 — 全屏应用期间隐藏全部覆盖层并停摆定时器（零存在感）
+        _fullscreenGuard = new FullscreenGuard();
+        _fullscreenGuard.FullscreenChanged += OnFullscreenChanged;
+        _fullscreenGuard.Start();
 
-        // 7. overlay 显示后注册全局热键（需 HWND 就绪）
-        _overlay.Ready += RegisterHotkeys;
+        Console.WriteLine($"[App] zDesktop 已启动 — {_overlays.Count} 个显示器覆盖层 / 组件 / 托盘 / 效率工具已就绪");
+    }
 
-        Console.WriteLine("[App] zDesktop 已启动 — 桌面图标 + 组件 + 布局持久化 + 系统托盘 + 效率工具已就绪");
+    // ===== 覆盖层集合管理（多屏）=====
+
+    /// <summary>
+    /// 枚举显示器并为每个显示器建立覆盖层，随后恢复组件布局。
+    ///
+    /// 图标层与桌面搜索框是单例图层，只挂在主屏覆盖层上。
+    /// </summary>
+    private void BuildOverlays()
+    {
+        var monitors = MonitorSet.Enumerate();
+        var primaryMonitor = MonitorSet.Primary(monitors);
+
+        foreach (var monitor in monitors)
+        {
+            var overlay = new MonitorOverlay(monitor);
+
+            overlay.Host.LayoutChanged += SaveLayout;
+            overlay.Host.SettingsRequested += OnWidgetSettingsRequested;
+            overlay.Window.DisplayChanged += OnDisplayChanged;
+            overlay.Window.ExplorerRestarted += OnExplorerRestarted;
+
+            if (monitor.Key == primaryMonitor.Key)
+            {
+                _primary = overlay;
+                AttachPrimaryLayers(overlay);
+                overlay.Window.Ready += OnOverlayReady;
+                overlay.Window.Ready += RegisterHotkeys;
+            }
+
+            // 每个覆盖层用自己的组件宿主做命中测试；主屏额外算上图标层与搜索框
+            var isPrimary = monitor.Key == primaryMonitor.Key;
+            overlay.Window.HitTestCallback = point => HitTestOverlay(overlay, isPrimary, point);
+
+            _overlays.Add(overlay);
+        }
+
+        // 兜底：万一没有任何显示器被标记为主屏，取第一个
+        _primary ??= _overlays.FirstOrDefault();
+
+        // 恢复布局：有配置则按显示器归属还原，无则用默认
+        var layout = _layoutStore.Load();
+        if (layout != null && layout.Widgets.Count > 0)
+        {
+            RestoreLayout(layout);
+            // 加载后立即落盘一次 — 确保配置迁移（v3→v4 补 MonitorKey）结果持久化，
+            // 不依赖退出时保存（异常退出时 OnExit 可能不执行）
+            SaveLayout();
+        }
+        else
+        {
+            LoadDefaultLayout();
+        }
+
+        foreach (var overlay in _overlays)
+            overlay.Window.Show();
+    }
+
+    /// <summary>把图标层与桌面搜索框挂到主屏覆盖层</summary>
+    private void AttachPrimaryLayers(MonitorOverlay overlay)
+    {
+        _iconLayer = new DesktopIconLayer
+        {
+            // 默认原生图标模式 — 自渲染图标层收起，原生 SHELLDLL_DefView 保持可见可用
+            Visibility = _zdesktopIconMode ? Visibility.Visible : Visibility.Collapsed,
+        };
+        _iconLayer.SizeChanged += OnIconLayerSized;
+        overlay.InsertLayerBelowWidgets(_iconLayer);
+
+        _desktopSearchBar = new DesktopSearchBar
+        {
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Top,
+            Margin = new Thickness(0, 16, 16, 0),
+        };
+        _desktopSearchBar.SearchRequested += OnDesktopSearch;
+        overlay.AddLayerAboveWidgets(_desktopSearchBar);
+    }
+
+    /// <summary>
+    /// 单个覆盖层的命中测试：组件区域捕获鼠标，其余透传给原生桌面。
+    /// 主屏额外考虑搜索框与自渲染图标层。
+    /// </summary>
+    private bool HitTestOverlay(MonitorOverlay overlay, bool isPrimary, System.Windows.Point point)
+    {
+        if (isPrimary)
+        {
+            if (_desktopSearchBar is { Visibility: Visibility.Visible } && IsPointInSearchBar(point))
+                return true;
+        }
+
+        if (overlay.Host.HitTest(point)) return true;
+
+        // zDesktop 自渲染图标模式（实验）— 整屏捕获，空白用于取消选中
+        if (isPrimary && _zdesktopIconMode && _iconLayer is { Visibility: Visibility.Visible })
+            return true;
+
+        // 原生模式 — 透传给原生桌面
+        return false;
+    }
+
+    /// <summary>关闭并清理全部覆盖层（重建或退出时调用）</summary>
+    private void CloseOverlays()
+    {
+        foreach (var overlay in _overlays)
+        {
+            overlay.Host.LayoutChanged -= SaveLayout;
+            overlay.Host.SettingsRequested -= OnWidgetSettingsRequested;
+            overlay.Window.DisplayChanged -= OnDisplayChanged;
+            overlay.Window.ExplorerRestarted -= OnExplorerRestarted;
+            overlay.Window.Close();
+        }
+        _overlays.Clear();
+        _primary = null;
+        _iconLayer = null;
+        _desktopSearchBar = null;
+        _iconsLoaded = false;
+    }
+
+    /// <summary>全屏状态变化 — 所有覆盖层统一让位/恢复</summary>
+    private void OnFullscreenChanged(bool isFullscreen)
+    {
+        foreach (var overlay in _overlays)
+            overlay.Window.SetFullscreenYield(isFullscreen);
+    }
+
+    /// <summary>Explorer 重启 — 图标层数据随原生桌面一同重建，需要重新扫描</summary>
+    private void OnExplorerRestarted()
+    {
+        Console.WriteLine("[App] Explorer 已重启，覆盖层完成重锚");
+        if (_zdesktopIconMode && _iconLayer != null)
+        {
+            // 自渲染模式下原生图标层被重建为可见，需重新隐藏
+            _overlay?.HideNativeIcons();
+        }
     }
 
     // ===== 全局热键 =====
@@ -292,16 +387,18 @@ public partial class App : Application
         }
     }
 
-    /// <summary>专注模式切换 — 隐藏/显示所有桌面组件</summary>
+    /// <summary>专注模式切换 — 隐藏/显示全部显示器上的桌面组件</summary>
     private void OnFocusModeToggled(bool enabled)
     {
-        if (_widgetHost == null) return;
-        foreach (var container in _widgetHost.Containers)
+        foreach (var overlay in _overlays)
         {
-            container.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
+            foreach (var container in overlay.Host.Containers)
+                container.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
         }
-        if (_iconLayer != null)
+
+        if (_iconLayer != null && _zdesktopIconMode)
             _iconLayer.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
+
         Console.WriteLine($"[App] 专注模式: {(enabled ? "已开启" : "已关闭")}");
     }
 
@@ -352,11 +449,52 @@ public partial class App : Application
         DesktopRestore.MarkRunning();
     }
 
-    /// <summary>显示器配置变更 — 重新定位超出工作区的组件</summary>
+    /// <summary>
+    /// 显示器配置变更（热插拔 / 分辨率 / 缩放）— 防抖后整体重建覆盖层集合。
+    ///
+    /// 系统在一次变更中会连发多条 WM_DISPLAYCHANGE / WM_DPICHANGED，
+    /// 且各覆盖层都会转发，故用 500ms 防抖合并为一次重建。
+    /// </summary>
     private void OnDisplayChanged()
     {
-        Console.WriteLine("[App] 显示器配置变更，重新定位组件");
-        _widgetHost?.RepositionWidgets();
+        _rebuildDebounce ??= CreateRebuildDebounce();
+        _rebuildDebounce.Stop();
+        _rebuildDebounce.Start();
+    }
+
+    private System.Windows.Threading.DispatcherTimer CreateRebuildDebounce()
+    {
+        var timer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(500),
+        };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            RebuildOverlays();
+        };
+        return timer;
+    }
+
+    /// <summary>
+    /// 重建覆盖层集合 — 先落盘当前布局，销毁旧覆盖层，按新显示器配置重建后还原。
+    ///
+    /// 组件实例会被重新创建（而非搬迁），因为组件宿主与覆盖层窗口一一绑定。
+    /// 布局按 MonitorKey 还原，显示器还在则回到原屏，已移除则落到主屏。
+    /// </summary>
+    private void RebuildOverlays()
+    {
+        Console.WriteLine("[App] 显示器配置变更，重建覆盖层集合");
+        SaveLayout();
+        CloseOverlays();
+        BuildOverlays();
+
+        foreach (var overlay in _overlays)
+            overlay.Host.RepositionWidgets();
+
+        // 重建期间若正处于全屏让位状态，新覆盖层需要立即跟上
+        if (_fullscreenGuard?.IsFullscreen == true)
+            OnFullscreenChanged(true);
     }
 
     /// <summary>扫描桌面、提取图标、恢复布局、隐藏原生图标层</summary>
@@ -487,9 +625,19 @@ public partial class App : Application
         _registry.Register("wallpaper-manager", () => new WallpaperWidget());
     }
 
-    /// <summary>从保存的布局配置恢复桌面</summary>
+    /// <summary>
+    /// 从保存的布局配置恢复桌面组件。
+    ///
+    /// 按 <see cref="WidgetLayoutEntry.MonitorKey"/> 分派到对应显示器的宿主：
+    /// - key 为空（v3 及更早的配置）→ 主屏
+    /// - key 指向的显示器已移除 → 落到主屏（设计案 v3.1 §五 孤儿处理）
+    /// </summary>
     private void RestoreLayout(LayoutConfig layout)
     {
+        if (_primary == null) return;
+
+        var orphaned = 0;
+
         foreach (var entry in layout.Widgets)
         {
             var widget = _registry.Create(entry.WidgetId);
@@ -499,9 +647,12 @@ public partial class App : Application
                 continue;
             }
 
-            _widgetHost!.AddWidget(widget, new WidgetSettings
+            var target = ResolveHost(entry.MonitorKey, ref orphaned);
+
+            target.AddWidget(widget, new WidgetSettings
             {
                 WidgetId = entry.WidgetId,
+                MonitorKey = target.MonitorKey,
                 X = entry.X,
                 Y = entry.Y,
                 Width = entry.Width,
@@ -510,60 +661,121 @@ public partial class App : Application
                 Config = entry.Config ?? new(),
             });
         }
-        Console.WriteLine($"[App] 已恢复布局：{layout.Widgets.Count} 个组件");
+
+        Console.WriteLine($"[App] 已恢复布局：{layout.Widgets.Count} 个组件" +
+                          (orphaned > 0 ? $"（{orphaned} 个因显示器已移除迁至主屏）" : ""));
     }
 
-    /// <summary>首次启动的默认布局 — 所有组件统一宽度 280，左右两列对齐排列</summary>
+    /// <summary>按显示器标识找宿主；找不到则回落主屏并计数</summary>
+    private WidgetHost ResolveHost(string monitorKey, ref int orphaned)
+    {
+        if (string.IsNullOrEmpty(monitorKey)) return _primary!.Host;
+
+        var match = _overlays.FirstOrDefault(o => o.Monitor.Key == monitorKey);
+        if (match != null) return match.Host;
+
+        orphaned++;
+        return _primary!.Host;
+    }
+
+    /// <summary>
+    /// 首次启动的默认布局 — 全部落在主屏，左右两列对齐。
+    ///
+    /// 坐标按主屏工作区实际宽度计算，不再硬编码 1580（那个值在 1080p 上会把
+    /// 右列组件推出屏幕外）。
+    /// </summary>
     private void LoadDefaultLayout()
     {
-        // 左列：时钟 + 日历
-        _widgetHost!.AddWidget(new ClockWidget(), new WidgetSettings
+        if (_primary == null) return;
+
+        var host = _primary.Host;
+        var (_, _, workWidth, _) = _primary.Monitor.WorkAreaDip;
+
+        const double widgetWidth = 280;
+        const double margin = 80;
+        // 右列贴右边缘；工作区过窄时退化为紧挨左列，保证始终可见
+        var rightX = Math.Max(margin + widgetWidth + 20, workWidth - widgetWidth - margin);
+
+        host.AddWidget(new ClockWidget(), new WidgetSettings
         {
-            WidgetId = "clock", X = 80, Y = 80, Width = 280, Height = 150,
+            WidgetId = "clock", MonitorKey = host.MonitorKey,
+            X = margin, Y = 80, Width = widgetWidth, Height = 150,
         });
-        _widgetHost.AddWidget(new CalendarWidget(), new WidgetSettings
+        host.AddWidget(new CalendarWidget(), new WidgetSettings
         {
-            WidgetId = "calendar", X = 80, Y = 250, Width = 280, Height = 300,
+            WidgetId = "calendar", MonitorKey = host.MonitorKey,
+            X = margin, Y = 250, Width = widgetWidth, Height = 300,
         });
-        // 右列：系统监控 + 待办
-        _widgetHost.AddWidget(new SystemMonitorWidget(), new WidgetSettings
+        host.AddWidget(new SystemMonitorWidget(), new WidgetSettings
         {
-            WidgetId = "system-monitor", X = 1580, Y = 80, Width = 280, Height = 220,
+            WidgetId = "system-monitor", MonitorKey = host.MonitorKey,
+            X = rightX, Y = 80, Width = widgetWidth, Height = 220,
         });
-        _widgetHost.AddWidget(new TodoWidget(), new WidgetSettings
+        host.AddWidget(new TodoWidget(), new WidgetSettings
         {
-            WidgetId = "todo", X = 1580, Y = 320, Width = 280, Height = 340,
+            WidgetId = "todo", MonitorKey = host.MonitorKey,
+            X = rightX, Y = 320, Width = widgetWidth, Height = 340,
         });
-        Console.WriteLine("[App] 已加载默认布局");
+
+        Console.WriteLine($"[App] 已加载默认布局（主屏工作区宽 {workWidth:F0} DIP，右列 X={rightX:F0}）");
     }
 
-    /// <summary>保存当前布局到 layout.json</summary>
+    /// <summary>
+    /// 保存当前布局到 layout.json —— 聚合全部显示器上的组件条目。
+    ///
+    /// 覆盖层集合为空时直接返回，避免重建过程中把空布局写回去覆盖用户配置。
+    /// </summary>
     private void SaveLayout()
     {
-        if (_widgetHost == null) return;
-        var config = _widgetHost.GetCurrentLayout();
+        if (_overlays.Count == 0) return;
+
+        var config = new LayoutConfig();
+        foreach (var overlay in _overlays)
+            config.Widgets.AddRange(overlay.Host.GetEntries());
+
         _layoutStore.Save(config);
     }
 
-    /// <summary>紧急恢复 — 崩溃或异常退出时由 CrashGuard 调用</summary>
+    /// <summary>
+    /// 紧急恢复 — 崩溃或异常退出时由 CrashGuard 调用。
+    ///
+    /// 只做「还原原生桌面」这一件必须做的事，且不依赖 WPF 消息循环仍然健康：
+    /// 直接按句柄还原图标层可见性，不走 Dispatcher。
+    /// </summary>
     private void EmergencyRestore()
     {
-        _overlay?.ShowNativeIcons();
+        try
+        {
+            _overlay?.ShowNativeIcons();
+        }
+        catch
+        {
+            // 崩溃路径上不允许再抛异常，兜底走无窗口依赖的还原
+        }
+
+        DesktopRestore.RestoreNativeDesktopIcons();
         DesktopRestore.ClearRunningFlag();
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
-        // 停止效率工具
+        // 停止全部定时器与后台服务
+        _fullscreenGuard?.Dispose();
+        _rebuildDebounce?.Stop();
         _automation.Stop();
         _hotkeys?.Dispose();
 
         SaveLayout();
         SaveIconLayout();
-        _overlay?.ShowNativeIcons(); // 恢复原生桌面图标层
-        DesktopRestore.ClearRunningFlag(); // 清除运行标记
+
+        // 还原原生桌面图标层 —— 无论此前是否切到过自渲染模式都执行，
+        // 保证零破坏契约在退出路径上一定兑现
+        _overlay?.ShowNativeIcons();
+        DesktopRestore.ClearRunningFlag();
+
         _tray?.Dispose();
-        _overlay?.Close();
+        CloseOverlays();
+
         base.OnExit(e);
     }
 }

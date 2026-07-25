@@ -87,6 +87,97 @@ public static class Win32
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool IsWindow(IntPtr hWnd);
 
+    // ===== 显示器枚举（多屏支持，设计案 v3.1 §八）=====
+
+    /// <summary>MONITORINFOEXW — 含设备名的显示器信息</summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct MONITORINFOEX
+    {
+        public int cbSize;
+        public RECT rcMonitor;   // 显示器完整区域（物理像素）
+        public RECT rcWork;      // 工作区，已排除任务栏（物理像素）
+        public uint dwFlags;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        public string szDevice; // 如 "\\\\.\\DISPLAY1"
+
+        public static MONITORINFOEX Create() => new()
+        {
+            cbSize = Marshal.SizeOf<MONITORINFOEX>(),
+            szDevice = string.Empty,
+        };
+    }
+
+    /// <summary>MONITORINFOF_PRIMARY — 主显示器标志</summary>
+    public const uint MONITORINFOF_PRIMARY = 0x00000001;
+
+    public delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdc, ref RECT lprcClip, IntPtr dwData);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum, IntPtr dwData);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFOEX lpmi);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+    public const uint MONITOR_DEFAULTTOPRIMARY = 0x00000001;
+    public const uint MONITOR_DEFAULTTONEAREST = 0x00000002;
+
+    // ===== Per-Monitor DPI =====
+
+    /// <summary>MDT_EFFECTIVE_DPI — 含用户缩放设置的有效 DPI</summary>
+    public const int MDT_EFFECTIVE_DPI = 0;
+
+    /// <summary>获取指定显示器的 DPI（Win8.1+）</summary>
+    [DllImport("shcore.dll")]
+    public static extern int GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
+
+    /// <summary>获取窗口所在显示器的 DPI（Win10 1607+）</summary>
+    [DllImport("user32.dll")]
+    public static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    /// <summary>标准 DPI 基准值 —— 96 DPI 对应 100% 缩放</summary>
+    public const double DefaultDpi = 96.0;
+
+    /// <summary>DPI 变更消息（PerMonitorV2 下由系统发送）</summary>
+    public const int WM_DPICHANGED = 0x02E0;
+
+    // ===== 全屏检测（设计案 v3.1 §二 原则 6）=====
+
+    /// <summary>
+    /// 查询用户通知状态 —— 用于判断是否有全屏应用/游戏在运行。
+    /// 返回 <see cref="QUNS_RUNNING_D3D_FULL_SCREEN"/> 或 <see cref="QUNS_BUSY"/> 时应隐藏覆盖层。
+    /// </summary>
+    [DllImport("shell32.dll")]
+    public static extern int SHQueryUserNotificationState(out int pquns);
+
+    public const int QUNS_NOT_PRESENT = 1;              // 屏保运行/用户未登录
+    public const int QUNS_BUSY = 2;                     // 全屏应用运行中
+    public const int QUNS_RUNNING_D3D_FULL_SCREEN = 3;  // 全屏 D3D 应用（游戏）
+    public const int QUNS_PRESENTATION_MODE = 4;        // 演示模式
+    public const int QUNS_ACCEPTS_NOTIFICATIONS = 5;    // 正常状态
+    public const int QUNS_QUIET_TIME = 6;               // 勿扰时段
+    public const int QUNS_APP = 7;                      // Windows 应用运行中
+
+    // ===== Explorer 重启自愈 =====
+
+    /// <summary>
+    /// 注册窗口消息 —— 用于取得 "TaskbarCreated" 消息 ID。
+    /// Explorer 崩溃重启后会向所有顶层窗口广播该消息，是重建覆盖层的可靠信号。
+    /// </summary>
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern uint RegisterWindowMessage(string lpString);
+
+    /// <summary>允许指定消息穿透 UIPI 消息过滤（广播消息接收所需）</summary>
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool ChangeWindowMessageFilterEx(IntPtr hwnd, uint message, uint action, IntPtr pChangeFilterStruct);
+
+    public const uint MSGFLT_ALLOW = 1;
+
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
         int X, int Y, int cx, int cy, uint uFlags);

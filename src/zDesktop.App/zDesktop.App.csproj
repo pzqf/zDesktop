@@ -17,6 +17,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <!-- 显式声明 PerMonitorV2 DPI 感知（设计案 v3.1 §八） -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!--
+      WFAC010：WinForms 分析器建议改用 ApplicationHighDpiMode 项目属性配置 DPI。
+      本项目不适用 —— 那条路径依赖 WinForms 的 Application.SetHighDpiMode() 被调用，
+      而 zDesktop 是 WPF 应用（启用 WinForms 仅为托盘图标 NotifyIcon），从不调用它。
+      进程级 DPI 感知必须在首个窗口创建前生效，manifest 是唯一可靠机制。
+    -->
+    <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
 
   <!-- 消除 WPF 与 WinForms / System.Drawing 的类型歧义，全局优先 WPF -->

@@ -21,6 +21,12 @@ public class WidgetHost : Canvas
 {
     private readonly List<WidgetContainer> _containers = new();
 
+    /// <summary>
+    /// 本宿主所属显示器的稳定标识。多屏下每个显示器一个 WidgetHost，
+    /// 导出布局时写入各组件条目，用于下次启动还原到正确的屏幕。
+    /// </summary>
+    public string MonitorKey { get; set; } = string.Empty;
+
     // 对齐辅助线
     private const double SnapThreshold = 8; // 吸附阈值（逻辑像素）
     private Line? _guideV; // 垂直辅助线
@@ -338,17 +344,19 @@ public class WidgetHost : Canvas
     }
 
     /// <summary>
-    /// 导出当前布局配置 — 遍历所有容器记录位置/大小
+    /// 导出本宿主的组件条目 — 坐标为相对本显示器工作区的 DIP。
+    /// 多屏下由 App 聚合所有宿主的条目组成完整 <see cref="LayoutConfig"/>。
     /// </summary>
-    public LayoutConfig GetCurrentLayout()
+    public List<WidgetLayoutEntry> GetEntries()
     {
-        var config = new LayoutConfig();
+        var entries = new List<WidgetLayoutEntry>();
 
         foreach (var container in _containers)
         {
-            config.Widgets.Add(new WidgetLayoutEntry
+            entries.Add(new WidgetLayoutEntry
             {
                 WidgetId = container.Widget.Descriptor.Id,
+                MonitorKey = MonitorKey,
                 X = Canvas.GetLeft(container),
                 Y = Canvas.GetTop(container),
                 Width = container.Width,
@@ -358,7 +366,15 @@ public class WidgetHost : Canvas
             });
         }
 
-        return config;
+        return entries;
+    }
+
+    /// <summary>
+    /// 导出当前布局配置（单宿主场景的便捷封装）
+    /// </summary>
+    public LayoutConfig GetCurrentLayout()
+    {
+        return new LayoutConfig { Widgets = GetEntries() };
     }
 
     /// <summary>

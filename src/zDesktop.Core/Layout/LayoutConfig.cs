@@ -6,8 +6,15 @@ namespace zDesktop.Core.Layout;
 /// </summary>
 public class LayoutConfig
 {
-    /// <summary>配置版本号（用于未来迁移）</summary>
-    public int Version { get; set; } = 3;
+    /// <summary>
+    /// 配置版本号。
+    /// v4 起每个组件记录所属显示器（<see cref="WidgetLayoutEntry.MonitorKey"/>），
+    /// 坐标语义由「主屏绝对坐标」改为「相对所属显示器工作区」。
+    /// </summary>
+    public const int CurrentVersion = 4;
+
+    /// <summary>配置版本号（用于迁移）</summary>
+    public int Version { get; set; } = CurrentVersion;
 
     /// <summary>组件布局条目列表</summary>
     public List<WidgetLayoutEntry> Widgets { get; set; } = new();
@@ -24,10 +31,16 @@ public class WidgetLayoutEntry
     /// <summary>组件类型 Id（对应 WidgetDescriptor.Id）</summary>
     public string WidgetId { get; set; } = string.Empty;
 
-    /// <summary>桌面坐标 X（逻辑像素）</summary>
+    /// <summary>
+    /// 所属显示器的稳定标识（如 <c>\\.\DISPLAY1</c>）。
+    /// 空表示主显示器 —— v3 及更早的配置没有此字段，迁移时留空即归主屏。
+    /// </summary>
+    public string MonitorKey { get; set; } = string.Empty;
+
+    /// <summary>相对所属显示器工作区左上角的 X 坐标（DIP）</summary>
     public double X { get; set; }
 
-    /// <summary>桌面坐标 Y（逻辑像素）</summary>
+    /// <summary>相对所属显示器工作区左上角的 Y 坐标（DIP）</summary>
     public double Y { get; set; }
 
     /// <summary>宽度</summary>
