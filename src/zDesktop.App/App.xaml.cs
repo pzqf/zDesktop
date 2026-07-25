@@ -51,7 +51,14 @@ public partial class App : Application
     private TrayIconManager? _tray;
     private bool _widgetsVisible = true;
     private bool _iconsLoaded;
-    private bool _zdesktopIconMode = true; // true=zDesktop 渲染图标，false=系统原生
+    /// <summary>
+    /// 桌面图标模式：true=zDesktop 自渲染，false=系统原生。
+    ///
+    /// **默认必须为 false**（设计案 v3.0 §二 零破坏契约）：自渲染图标层会隐藏
+    /// SHELLDLL_DefView，导致回收站/此电脑/副屏图标不可见、框选与 F2 改名失效。
+    /// 该模式仅作为用户显式开启的实验特性保留，后续将随分区功能落地一并移除。
+    /// </summary>
+    private bool _zdesktopIconMode;
 
     // ===== 效率工具服务（单例长驻）=====
     private readonly AppIndex _appIndex = new();
@@ -95,6 +102,8 @@ public partial class App : Application
 
         // 分层组装：图标层在底（z 序低），组件层在上（z 序高），搜索框最上层右上角
         var grid = new Grid();
+        // 默认原生图标模式 — 自渲染图标层收起，原生 SHELLDLL_DefView 保持可见可用
+        _iconLayer.Visibility = _zdesktopIconMode ? Visibility.Visible : Visibility.Collapsed;
         grid.Children.Add(_iconLayer);   // 底层 — 桌面图标
         grid.Children.Add(_widgetHost);  // 上层 — 浮动组件
         // 搜索框 — 右上角常驻
@@ -330,10 +339,15 @@ public partial class App : Application
         LoadDesktopIcons();
     }
 
-    /// <summary>overlay 就绪 — 隐藏原生桌面图标层（此时 HWND 已就绪）</summary>
+    /// <summary>
+    /// overlay 就绪（HWND 已就绪）。
+    ///
+    /// 此处**不再**无条件隐藏原生桌面图标层 —— 零破坏契约要求默认保留原生桌面。
+    /// 仅当用户显式切到 zDesktop 自渲染模式时才隐藏（见 <see cref="OnToggleIconMode"/>）。
+    /// </summary>
     private void OnOverlayReady()
     {
-        _overlay?.HideNativeIcons();
+        if (_zdesktopIconMode) _overlay?.HideNativeIcons();
         // 标记 zDesktop 正在运行（用于下次启动检测异常退出）
         DesktopRestore.MarkRunning();
     }
@@ -390,10 +404,15 @@ public partial class App : Application
         Console.WriteLine($"[App] 桌面图标已加载：{scanned.Count} 个{(hasLayout ? "（已恢复位置）" : "（默认排列）")}");
     }
 
-    /// <summary>保存图标布局到 icons-layout.json</summary>
+    /// <summary>
+    /// 保存图标布局到 icons-layout.json
+    ///
+    /// 未加载过图标时必须跳过：原生图标模式下图标层为空，若照常落盘会把用户此前
+    /// 保存的图标位置覆盖成空布局。
+    /// </summary>
     private void SaveIconLayout()
     {
-        if (_iconLayer == null) return;
+        if (_iconLayer == null || !_iconsLoaded) return;
         _iconStore.SaveLayout(_iconLayer.GetCurrentLayout());
     }
 

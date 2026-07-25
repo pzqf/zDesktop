@@ -1,5 +1,7 @@
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Threading;
 using zDesktop.Shell.Interop;
 
 namespace zDesktop.Shell.Desktop;
@@ -18,6 +20,13 @@ public class DesktopOverlayWindow : Window
     private IntPtr _hwnd;
     private HwndSource? _hwndSource;
     private IntPtr _desktopIconHwnd;
+
+    /// <summary>
+    /// Z 序兜底校验定时器 — WM_WINDOWPOSCHANGING 拦不到的情况（如 Explorer 重启后
+    /// 桌面图标层 HWND 失效）由它周期性重新锚定。
+    /// 注：Explorer 重启的完整处理（监听 TaskbarCreated 消息 + 重建覆盖层）属 M1 范围。
+    /// </summary>
+    private DispatcherTimer? _zOrderTimer;
 
     /// <summary>组件区域 hit-test 回调 — 返回 true 表示该区域捕获鼠标</summary>
     public Func<Point, bool>? HitTestCallback { get; set; }
@@ -68,25 +77,35 @@ public class DesktopOverlayWindow : Window
     {
         // 窗口已渲染完成，现在调整 Z 序
         PositionAboveDesktopIcons();
-        Console.WriteLine("[DesktopOverlay] Z 序锚定完成（ContentRendered 后）");
+        StartZOrderKeeper();
+        Console.WriteLine("[DesktopOverlay] Z 序锚定完成（ContentRendered 后），兜底校验已启动");
         // 通知外部：HWND 与桌面图标层均已就绪，可执行隐藏原生图标等操作
         Ready?.Invoke();
     }
 
     /// <summary>
     /// 获取桌面工作区并设置窗口大小
+    ///
+    /// SPI_GETWORKAREA 返回的是**物理像素**，而 WPF 的 Left/Top/Width/Height 是**逻辑像素(DIP)**，
+    /// 必须经 CompositionTarget.TransformFromDevice 换算，否则在非 100% 缩放下窗口尺寸会被放大
+    /// （150% 缩放时窗口是屏幕的 1.5 倍）。DPI-unaware 进程下该矩阵为单位阵，换算自动退化为无操作。
     /// </summary>
     private void UpdateWorkAreaBounds()
     {
         var rect = new Win32.RECT();
         Win32.SystemParametersInfo(Win32.SPI_GETWORKAREA, 0, ref rect, 0);
 
-        Width = rect.Width;
-        Height = rect.Height;
-        Left = rect.Left;
-        Top = rect.Top;
+        var toDip = _hwndSource?.CompositionTarget?.TransformFromDevice;
+        var sx = toDip?.M11 ?? 1.0;
+        var sy = toDip?.M22 ?? 1.0;
 
-        Console.WriteLine($"[DesktopOverlay] 工作区: {rect.Width}x{rect.Height} @ ({rect.Left},{rect.Top})");
+        Width = rect.Width * sx;
+        Height = rect.Height * sy;
+        Left = rect.Left * sx;
+        Top = rect.Top * sy;
+
+        Console.WriteLine($"[DesktopOverlay] 工作区: 物理 {rect.Width}x{rect.Height} @ ({rect.Left},{rect.Top}) " +
+                          $"→ DIP {Width:F0}x{Height:F0} @ ({Left:F0},{Top:F0}) 缩放 {1 / sx:P0}");
     }
 
     /// <summary>
@@ -97,16 +116,49 @@ public class DesktopOverlayWindow : Window
     {
         if (_hwnd == IntPtr.Zero) return;
 
-        var insertAfter = _desktopIconHwnd != IntPtr.Zero
-            ? _desktopIconHwnd
-            : Win32.HWND_BOTTOM;
-
         Win32.SetWindowPos(
             _hwnd,
-            insertAfter,
+            ResolveZOrderAnchor(),
             0, 0, 0, 0,
             Win32.SWP_NOSIZE | Win32.SWP_NOMOVE | Win32.SWP_NOACTIVATE | Win32.SWP_NOOWNERZORDER | Win32.SWP_SHOWWINDOW
         );
+    }
+
+    /// <summary>
+    /// 解析 Z 序锚点 — 返回覆盖层应插入其上方的窗口句柄。
+    /// 句柄失效（如 Explorer 重启）时重新查找；仍找不到则退回 HWND_BOTTOM。
+    /// </summary>
+    private IntPtr ResolveZOrderAnchor()
+    {
+        if (_desktopIconHwnd == IntPtr.Zero || !Win32.IsWindow(_desktopIconHwnd))
+        {
+            var found = DesktopWindowFinder.FindDesktopIconView();
+            if (found != _desktopIconHwnd)
+            {
+                Console.WriteLine($"[DesktopOverlay] 桌面图标层句柄已刷新: " +
+                                  $"0x{_desktopIconHwnd.ToInt64():X} → 0x{found.ToInt64():X}");
+                _desktopIconHwnd = found;
+            }
+        }
+
+        return _desktopIconHwnd != IntPtr.Zero ? _desktopIconHwnd : Win32.HWND_BOTTOM;
+    }
+
+    /// <summary>启动 Z 序兜底校验（低频，仅在锚点漂移时才真正调用 SetWindowPos）</summary>
+    private void StartZOrderKeeper()
+    {
+        _zOrderTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(5),
+        };
+        _zOrderTimer.Tick += (_, _) =>
+        {
+            if (_hwnd == IntPtr.Zero) return;
+            // 锚点失效时 ResolveZOrderAnchor 会重新查找，随后重新锚定
+            if (_desktopIconHwnd == IntPtr.Zero || !Win32.IsWindow(_desktopIconHwnd))
+                PositionAboveDesktopIcons();
+        };
+        _zOrderTimer.Start();
     }
 
     /// <summary>
@@ -139,6 +191,22 @@ public class DesktopOverlayWindow : Window
     {
         const int WM_NCHITTEST = 0x0084;
         const int WM_DISPLAYCHANGE = 0x007E;
+
+        // Z 序自愈 — 有窗口试图插到覆盖层与桌面图标层之间时，改写落点强制锚回图标层上方。
+        // 不置 handled：Z 序只是被修正，消息仍需交由默认流程继续处理。
+        if (msg == Win32.WM_WINDOWPOSCHANGING)
+        {
+            var wp = Marshal.PtrToStructure<Win32.WINDOWPOS>(lParam);
+            if ((wp.flags & Win32.SWP_NOZORDER) == 0)
+            {
+                var anchor = ResolveZOrderAnchor();
+                if (wp.hwndInsertAfter != anchor)
+                {
+                    wp.hwndInsertAfter = anchor;
+                    Marshal.StructureToPtr(wp, lParam, false);
+                }
+            }
+        }
 
         if (msg == WM_NCHITTEST)
         {
@@ -180,6 +248,8 @@ public class DesktopOverlayWindow : Window
 
     protected override void OnClosed(EventArgs e)
     {
+        _zOrderTimer?.Stop();
+        _zOrderTimer = null;
         _hwndSource?.RemoveHook(WndProc);
         _hwndSource?.Dispose();
         base.OnClosed(e);

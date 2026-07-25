@@ -59,6 +59,34 @@ public static class Win32
         public int Y;
     }
 
+    // ===== Z 序自愈（WM_WINDOWPOSCHANGING）=====
+
+    /// <summary>窗口位置/Z 序即将变更 — 拦截此消息可否决他人插队</summary>
+    public const int WM_WINDOWPOSCHANGING = 0x0046;
+
+    /// <summary>
+    /// WINDOWPOS 结构 — WM_WINDOWPOSCHANGING 的 lParam 指向它。
+    /// 改写 hwndInsertAfter 即可强制 Z 序落点。
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct WINDOWPOS
+    {
+        public IntPtr hwnd;
+        public IntPtr hwndInsertAfter;
+        public int x;
+        public int y;
+        public int cx;
+        public int cy;
+        public uint flags;
+    }
+
+    /// <summary>SWP_NOZORDER — 置位表示本次不改变 Z 序</summary>
+    public const uint SWP_NOZORDER = 0x0004;
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool IsWindow(IntPtr hWnd);
+
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
         int X, int Y, int cx, int cy, uint uFlags);

@@ -90,11 +90,11 @@ public sealed class TrayIconManager : IDisposable
 
         menu.Items.Add(new ToolStripSeparator());
 
-        // 桌面图标模式 — zDesktop 渲染（默认勾选）/ 系统原生
-        _iconModeItem = new ToolStripMenuItem("zDesktop 图标", null, (_, _) => ToggleIconMode?.Invoke())
+        // 桌面图标模式 — 默认系统原生（不勾选）；zDesktop 自渲染为实验特性，需用户显式开启
+        _iconModeItem = new ToolStripMenuItem("zDesktop 图标（实验）", null, (_, _) => ToggleIconMode?.Invoke())
         {
             CheckOnClick = false,
-            Checked = true, // 默认启用 zDesktop 渲染
+            Checked = false, // 零破坏契约：默认保留原生桌面图标层
         };
         menu.Items.Add(_iconModeItem);
 
