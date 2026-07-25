@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件分类</title>
+    <style id="theme-vars">
+:root {
+  /* Brand Colors */
+  --dt-background: #0f1117;
+  --dt-foreground: #e8eaed;
+  --dt-card: #1a1d27;
+  --dt-card-foreground: #e8eaed;
+  --dt-popover: #1a1d27;
+  --dt-popover-foreground: #e8eaed;
+  --dt-primary: #6c5ce7;
+  --dt-primary-foreground: #ffffff;
+  --dt-muted: #2a2d3a;
+  --dt-muted-foreground: #9ca3af;
+  --dt-border: #2e3142;
+  --dt-input: #2a2d3a;
+  --dt-ring: #6c5ce7;
+  --dt-state-success: #10b981;
+  --dt-state-warning: #f59e0b;
+  --dt-state-error: #ef4444;
+  --dt-state-info: #3b82f6;
+  --dt-radius-sm: 6px;
+  --dt-radius-md: 10px;
+  --dt-radius-lg: 16px;
+}
+
+body {
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  background-color: var(--dt-background);
+  color: var(--dt-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--dt-background);
+    --color-foreground: var(--dt-foreground);
+    --color-card: var(--dt-card);
+    --color-card-foreground: var(--dt-card-foreground);
+    --color-popover: var(--dt-popover);
+    --color-popover-foreground: var(--dt-popover-foreground);
+    --color-primary: var(--dt-primary);
+    --color-primary-foreground: var(--dt-primary-foreground);
+    --color-muted: var(--dt-muted);
+    --color-muted-foreground: var(--dt-muted-foreground);
+    --color-border: var(--dt-border);
+    --color-input: var(--dt-input);
+    --color-ring: var(--dt-ring);
+    --color-state-success: var(--dt-state-success);
+    --color-state-warning: var(--dt-state-warning);
+    --color-state-error: var(--dt-state-error);
+    --color-state-info: var(--dt-state-info);
+    --radius-sm: var(--dt-radius-sm);
+    --radius-md: var(--dt-radius-md);
+    --radius-lg: var(--dt-radius-lg);
+  }
+  @layer base {
+    body { background: var(--dt-background); color: var(--dt-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--dt-background); }
+      .text-background { color: var(--dt-background); }
+      .border-background { border-color: var(--dt-background); }
+      .ring-background { --tw-ring-color: var(--dt-background); }
+      .bg-foreground { background-color: var(--dt-foreground); }
+      .text-foreground { color: var(--dt-foreground); }
+      .border-foreground { border-color: var(--dt-foreground); }
+      .ring-foreground { --tw-ring-color: var(--dt-foreground); }
+      .bg-card { background-color: var(--dt-card); }
+      .text-card { color: var(--dt-card); }
+      .border-card { border-color: var(--dt-card); }
+      .ring-card { --tw-ring-color: var(--dt-card); }
+      .bg-card-foreground { background-color: var(--dt-card-foreground); }
+      .text-card-foreground { color: var(--dt-card-foreground); }
+      .border-card-foreground { border-color: var(--dt-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--dt-card-foreground); }
+      .bg-popover { background-color: var(--dt-popover); }
+      .text-popover { color: var(--dt-popover); }
+      .border-popover { border-color: var(--dt-popover); }
+      .ring-popover { --tw-ring-color: var(--dt-popover); }
+      .bg-popover-foreground { background-color: var(--dt-popover-foreground); }
+      .text-popover-foreground { color: var(--dt-popover-foreground); }
+      .border-popover-foreground { border-color: var(--dt-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--dt-popover-foreground); }
+      .bg-primary { background-color: var(--dt-primary); }
+      .text-primary { color: var(--dt-primary); }
+      .border-primary { border-color: var(--dt-primary); }
+      .ring-primary { --tw-ring-color: var(--dt-primary); }
+      .bg-primary-foreground { background-color: var(--dt-primary-foreground); }
+      .text-primary-foreground { color: var(--dt-primary-foreground); }
+      .border-primary-foreground { border-color: var(--dt-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--dt-primary-foreground); }
+      .bg-muted { background-color: var(--dt-muted); }
+      .text-muted { color: var(--dt-muted); }
+      .border-muted { border-color: var(--dt-muted); }
+      .ring-muted { --tw-ring-color: var(--dt-muted); }
+      .bg-muted-foreground { background-color: var(--dt-muted-foreground); }
+      .text-muted-foreground { color: var(--dt-muted-foreground); }
+      .border-muted-foreground { border-color: var(--dt-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--dt-muted-foreground); }
+      .bg-border { background-color: var(--dt-border); }
+      .text-border { color: var(--dt-border); }
+      .border-border { border-color: var(--dt-border); }
+      .ring-border { --tw-ring-color: var(--dt-border); }
+      .bg-input { background-color: var(--dt-input); }
+      .text-input { color: var(--dt-input); }
+      .border-input { border-color: var(--dt-input); }
+      .ring-input { --tw-ring-color: var(--dt-input); }
+      .bg-ring { background-color: var(--dt-ring); }
+      .text-ring { color: var(--dt-ring); }
+      .border-ring { border-color: var(--dt-ring); }
+      .ring-ring { --tw-ring-color: var(--dt-ring); }
+      .bg-state-success { background-color: var(--dt-state-success); }
+      .text-state-success { color: var(--dt-state-success); }
+      .border-state-success { border-color: var(--dt-state-success); }
+      .ring-state-success { --tw-ring-color: var(--dt-state-success); }
+      .bg-state-warning { background-color: var(--dt-state-warning); }
+      .text-state-warning { color: var(--dt-state-warning); }
+      .border-state-warning { border-color: var(--dt-state-warning); }
+      .ring-state-warning { --tw-ring-color: var(--dt-state-warning); }
+      .bg-state-error { background-color: var(--dt-state-error); }
+      .text-state-error { color: var(--dt-state-error); }
+      .border-state-error { border-color: var(--dt-state-error); }
+      .ring-state-error { --tw-ring-color: var(--dt-state-error); }
+      .bg-state-info { background-color: var(--dt-state-info); }
+      .text-state-info { color: var(--dt-state-info); }
+      .border-state-info { border-color: var(--dt-state-info); }
+      .ring-state-info { --tw-ring-color: var(--dt-state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="h-screen overflow-hidden min-h-0 font-sans antialiased">
+    <main data-viewport-mode="app-shell" class="h-screen overflow-hidden min-h-0 flex">
+      <!-- ===== Sidebar ===== -->
+      <aside class="w-56 shrink-0 bg-muted border-r border-border flex flex-col">
+        <!-- Logo (clickable -> home) -->
+        <a href="#" data-dom-id="shortcut-home" class="flex items-center gap-2 px-4 py-5 cursor-pointer hover:opacity-80 transition-opacity">
+          <i data-lucide="monitor" class="w-5 h-5 text-primary"></i>
+          <span class="text-lg font-semibold text-foreground">zDesktop</span>
+        </a>
+
+        <!-- Nav sections -->
+        <nav class="flex flex-col gap-y-1 px-3 mt-1 flex-1 overflow-y-auto no-scrollbar">
+          <a href="#" data-dom-id="nav-home" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>首页</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">美化</p>
+          <a href="#" data-dom-id="nav-wallpaper-square" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            <span>壁纸广场</span>
+          </a>
+          <a href="#" data-dom-id="nav-desktop-widgets" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="widgets" class="w-4 h-4"></i>
+            <span>桌面组件</span>
+          </a>
+          <a href="#" data-dom-id="nav-taskbar" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="panel-bottom" class="w-4 h-4"></i>
+            <span>任务栏</span>
+          </a>
+          <a href="#" data-dom-id="nav-icon-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="palette" class="w-4 h-4"></i>
+            <span>图标管理</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">管理</p>
+          <a href="#" data-dom-id="nav-file-classify" class="flex items-center gap-3 px-3 py-2.5 rounded-md bg-primary/10 text-primary text-sm font-medium">
+            <i data-lucide="folder-tree" class="w-4 h-4"></i>
+            <span>文件分类</span>
+          </a>
+          <a href="#" data-dom-id="nav-disk-mapper" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="hard-drive" class="w-4 h-4"></i>
+            <span>磁盘映射</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">效率</p>
+          <a href="#" data-dom-id="nav-global-search" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>全局搜索</span>
+          </a>
+          <a href="#" data-dom-id="nav-quick-launch" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            <span>快速启动器</span>
+          </a>
+          <a href="#" data-dom-id="nav-window-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="app-window" class="w-4 h-4"></i>
+            <span>窗口管理</span>
+          </a>
+          <a href="#" data-dom-id="nav-automation-rules" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>自动化规则</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">系统</p>
+          <a href="#" data-dom-id="nav-control-center" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings-2" class="w-4 h-4"></i>
+            <span>控制中心</span>
+          </a>
+          <a href="#" data-dom-id="nav-settings" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            <span>设置</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">预览</p>
+          <a href="#" data-dom-id="nav-desktop-preview" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="monitor" class="w-4 h-4"></i>
+            <span>桌面效果图</span>
+          </a>
+        </nav>
+
+        <!-- Bottom: current wallpaper -->
+        <div class="mt-auto border-t border-border px-4 py-4">
+          <p class="text-xs text-muted-foreground mb-2">当前壁纸</p>
+          <div class="flex items-center gap-3">
+            <img src="../assets/wallpaper-mountain-lake.jpg" alt="当前壁纸" class="w-12 h-8 object-cover rounded-md border border-border">
+            <div class="min-w-0">
+              <p class="text-sm text-foreground truncate">山湖暮色</p>
+              <p class="text-xs text-muted-foreground">1920 x 1080</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Content area -->
+      <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+        <!-- Top bar -->
+        <div class="flex items-center justify-between px-6 py-4 shrink-0">
+          <h1 class="text-xl font-semibold text-foreground">文件分类</h1>
+          <div class="flex items-center gap-3">
+            <button class="flex items-center gap-2 bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium hover:opacity-90 shadow-md shadow-primary/20 transition-opacity">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>一键整理</span>
+            </button>
+            <button class="flex items-center gap-2 border border-border text-foreground rounded-md px-4 py-2 text-sm hover:bg-muted shadow-sm transition-colors">
+              <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+              <span>自定义分区</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Smart category cards -->
+        <div class="flex gap-3 px-6 py-4 shrink-0">
+          <!-- 图片 -->
+          <div class="bg-card border border-border rounded-lg px-4 py-3 flex-1 flex items-center gap-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
+            <div class="w-10 h-10 rounded-lg bg-state-info/10 flex items-center justify-center shrink-0">
+              <i data-lucide="image" class="w-5 h-5 text-state-info"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-foreground">图片</p>
+              <p class="text-xs text-muted-foreground">2,847 个</p>
+              <p class="text-xs text-muted-foreground/70">12.4 GB</p>
+            </div>
+          </div>
+          <!-- 文档 -->
+          <div class="bg-card border border-border rounded-lg px-4 py-3 flex-1 flex items-center gap-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
+            <div class="w-10 h-10 rounded-lg bg-state-success/10 flex items-center justify-center shrink-0">
+              <i data-lucide="file-text" class="w-5 h-5 text-state-success"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-foreground">文档</p>
+              <p class="text-xs text-muted-foreground">1,203 个</p>
+              <p class="text-xs text-muted-foreground/70">3.2 GB</p>
+            </div>
+          </div>
+          <!-- 视频 -->
+          <div class="bg-card border border-border rounded-lg px-4 py-3 flex-1 flex items-center gap-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
+            <div class="w-10 h-10 rounded-lg bg-state-warning/10 flex items-center justify-center shrink-0">
+              <i data-lucide="film" class="w-5 h-5 text-state-warning"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-foreground">视频</p>
+              <p class="text-xs text-muted-foreground">386 个</p>
+              <p class="text-xs text-muted-foreground/70">48.6 GB</p>
+            </div>
+          </div>
+          <!-- 音乐 -->
+          <div class="bg-card border border-border rounded-lg px-4 py-3 flex-1 flex items-center gap-3 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
+            <div class="w-10 h-10 rounded-lg bg-state-error/10 flex items-center justify-center shrink-0">
+              <i data-lucide="music" class="w-5 h-5 text-state-error"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-foreground">音乐</p>
+              <p class="text-xs text-muted-foreground">529 个</p>
+              <p class="text-xs text-muted-foreground/70">2.1 GB</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Storage breakdown bar -->
+        <div class="px-6 py-3 shrink-0 border-b border-border">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-muted-foreground">存储分布</span>
+            <span class="text-xs text-muted-foreground" style="font-variant-numeric: tabular-nums;">总计 66.3 GB</span>
+          </div>
+          <div class="flex h-2 rounded-full overflow-hidden">
+            <div class="bg-state-info" style="width: 40%;"></div>
+            <div class="bg-state-success" style="width: 15%;"></div>
+            <div class="bg-state-warning" style="width: 35%;"></div>
+            <div class="bg-state-error" style="width: 5%;"></div>
+            <div class="bg-muted-foreground" style="width: 5%;"></div>
+          </div>
+          <div class="flex items-center gap-4 mt-2 flex-wrap">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-sm bg-state-info"></span>
+              <span class="text-xs text-muted-foreground">图片 40%</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-sm bg-state-success"></span>
+              <span class="text-xs text-muted-foreground">文档 15%</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-sm bg-state-warning"></span>
+              <span class="text-xs text-muted-foreground">视频 35%</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-sm bg-state-error"></span>
+              <span class="text-xs text-muted-foreground">音乐 5%</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-sm bg-muted-foreground"></span>
+              <span class="text-xs text-muted-foreground">其他 5%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- File browser area -->
+        <div class="flex flex-1 overflow-hidden min-h-0 shadow-sm">
+          <!-- Left panel: folder tree -->
+          <div class="w-64 shrink-0 border-r border-border flex flex-col overflow-y-auto">
+            <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-4 pt-4 pb-2 shrink-0">文件夹</p>
+            <div class="flex flex-col gap-y-0.5 px-3">
+              <button class="flex items-center gap-3 px-3 py-2 rounded-md bg-primary/10 text-primary text-sm w-full text-left">
+                <i data-lucide="folder-open" class="w-4 h-4 shrink-0"></i>
+                <span>桌面</span>
+              </button>
+              <button class="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+                <i data-lucide="folder" class="w-4 h-4 shrink-0"></i>
+                <span class="flex-1">文档</span>
+                <span class="bg-primary/20 text-primary text-[10px] rounded-full px-1.5">45</span>
+              </button>
+              <button class="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+                <i data-lucide="folder" class="w-4 h-4 shrink-0"></i>
+                <span class="flex-1">下载</span>
+                <span class="bg-primary/20 text-primary text-[10px] rounded-full px-1.5">128</span>
+              </button>
+              <button class="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+                <i data-lucide="folder" class="w-4 h-4 shrink-0"></i>
+                <span>图片</span>
+              </button>
+              <button class="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+                <i data-lucide="folder" class="w-4 h-4 shrink-0"></i>
+                <span class="flex-1">视频</span>
+                <span class="bg-primary/20 text-primary text-[10px] rounded-full px-1.5">86</span>
+              </button>
+              <button class="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+                <i data-lucide="folder" class="w-4 h-4 shrink-0"></i>
+                <span class="flex-1">音乐</span>
+                <span class="bg-primary/20 text-primary text-[10px] rounded-full px-1.5">52</span>
+              </button>
+              <div class="border-t border-border my-2"></div>
+              <button class="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+                <i data-lucide="hard-drive" class="w-4 h-4 shrink-0"></i>
+                <span>C: 盘</span>
+              </button>
+              <button class="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+                <i data-lucide="hard-drive" class="w-4 h-4 shrink-0"></i>
+                <span>D: 盘</span>
+              </button>
+              <button class="flex items-center gap-3 px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors w-full text-left">
+                <i data-lucide="hard-drive" class="w-4 h-4 shrink-0"></i>
+                <span>E: 盘</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right panel: file list -->
+          <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+            <!-- Breadcrumb -->
+            <div class="flex items-center gap-1.5 px-4 py-3 shrink-0 text-sm text-muted-foreground">
+              <span class="hover:text-foreground transition-colors cursor-pointer">桌面</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+              <span class="text-foreground">工作文件</span>
+            </div>
+            <!-- File list header -->
+            <div class="flex items-center px-4 py-2 border-b border-border text-xs text-muted-foreground shrink-0">
+              <div class="w-8 shrink-0"></div>
+              <div class="flex-1">名称</div>
+              <div class="w-24 text-right shrink-0">大小</div>
+              <div class="w-32 text-right shrink-0">修改日期</div>
+              <div class="w-16 shrink-0"></div>
+            </div>
+            <!-- Scrollable file list -->
+            <div data-scroll-region="primary" class="flex-1 overflow-y-auto min-h-0">
+              <!-- .docx = blue -->
+              <div class="flex items-center px-4 py-2.5 border-b border-border/50 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="file-text" class="w-4 h-4 text-blue-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-blue-400 bg-blue-500/10 rounded px-1 py-0.5 shrink-0">DOCX</span>
+                  <span class="text-foreground truncate">项目方案.docx</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2.4 MB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-20</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <!-- .png = green -->
+              <div class="flex items-center px-4 py-2.5 border-b border-border/50 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="image" class="w-4 h-4 text-green-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-green-400 bg-green-500/10 rounded px-1 py-0.5 shrink-0">PNG</span>
+                  <span class="text-foreground truncate">设计稿.png</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">8.1 MB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-19</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <!-- .ts = purple -->
+              <div class="flex items-center px-4 py-2.5 border-b border-border/50 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="file-code" class="w-4 h-4 text-purple-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-purple-400 bg-purple-500/10 rounded px-1 py-0.5 shrink-0">TS</span>
+                  <span class="text-foreground truncate">index.ts</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">12 KB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-21</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <!-- .zip = amber -->
+              <div class="flex items-center px-4 py-2.5 border-b border-border/50 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="file-archive" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-amber-400 bg-amber-500/10 rounded px-1 py-0.5 shrink-0">ZIP</span>
+                  <span class="text-foreground truncate">资源包.zip</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">156 MB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-18</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <!-- .pdf = red -->
+              <div class="flex items-center px-4 py-2.5 border-b border-border/50 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="file-text" class="w-4 h-4 text-red-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-red-400 bg-red-500/10 rounded px-1 py-0.5 shrink-0">PDF</span>
+                  <span class="text-foreground truncate">会议纪要.pdf</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">1.2 MB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-17</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <!-- .mp4 = pink -->
+              <div class="flex items-center px-4 py-2.5 border-b border-border/50 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="film" class="w-4 h-4 text-pink-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-pink-400 bg-pink-500/10 rounded px-1 py-0.5 shrink-0">MP4</span>
+                  <span class="text-foreground truncate">演示录屏.mp4</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">340 MB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-15</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <!-- .jpg = teal -->
+              <div class="flex items-center px-4 py-2.5 border-b border-border/50 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="image" class="w-4 h-4 text-teal-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-teal-400 bg-teal-500/10 rounded px-1 py-0.5 shrink-0">JPG</span>
+                  <span class="text-foreground truncate">产品截图.jpg</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">3.7 MB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-14</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <!-- .xlsx = emerald -->
+              <div class="flex items-center px-4 py-2.5 border-b border-border/50 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="file-text" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 rounded px-1 py-0.5 shrink-0">XLSX</span>
+                  <span class="text-foreground truncate">季度报告.xlsx</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">4.5 MB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-13</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <!-- .json = orange -->
+              <div class="flex items-center px-4 py-2.5 border-b border-border/50 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="file-code" class="w-4 h-4 text-orange-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-orange-400 bg-orange-500/10 rounded px-1 py-0.5 shrink-0">JSON</span>
+                  <span class="text-foreground truncate">config.json</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2 KB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-12</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+              <!-- .tar.gz = amber -->
+              <div class="flex items-center px-4 py-2.5 border-l-2 border-l-transparent hover:bg-primary/5 hover:border-l-primary transition-all text-sm">
+                <div class="w-8 shrink-0"><input type="checkbox" class="accent-primary"></div>
+                <div class="flex-1 flex items-center gap-2 min-w-0">
+                  <i data-lucide="file-archive" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                  <span class="text-[9px] font-semibold text-amber-400 bg-amber-500/10 rounded px-1 py-0.5 shrink-0">TGZ</span>
+                  <span class="text-foreground truncate">备份-0710.tar.gz</span>
+                </div>
+                <div class="w-24 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2.1 GB</div>
+                <div class="w-32 text-right text-muted-foreground shrink-0" style="font-variant-numeric: tabular-nums;">2026-07-10</div>
+                <div class="w-16 shrink-0 flex justify-center">
+                  <button class="text-muted-foreground hover:text-foreground transition-colors"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\zDesktop.Shell\zDesktop.Shell.csproj" />
+    <ProjectReference Include="..\zDesktop.Core\zDesktop.Core.csproj" />
+    <ProjectReference Include="..\zDesktop.Widgets\zDesktop.Widgets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <!-- 消除 WPF 与 WinForms / System.Drawing 的类型歧义，全局优先 WPF -->
+  <ItemGroup>
+    <Using Include="System.Windows.Media.Color" Alias="Color" />
+    <Using Include="System.Windows.Media.Brushes" Alias="Brushes" />
+    <Using Include="System.Windows.Media.SolidColorBrush" Alias="SolidColorBrush" />
+    <Using Include="System.Windows.Input.Cursors" Alias="Cursors" />
+    <Using Include="System.Windows.Controls.Orientation" Alias="Orientation" />
+    <Using Include="System.Windows.Controls.Button" Alias="Button" />
+    <Using Include="System.Windows.Controls.Panel" Alias="Panel" />
+    <Using Include="System.Windows.Controls.TextBox" Alias="TextBox" />
+    <Using Include="System.Windows.Input.KeyEventArgs" Alias="KeyEventArgs" />
+    <Using Include="System.Windows.Controls.ProgressBar" Alias="ProgressBar" />
+    <Using Include="System.Windows.HorizontalAlignment" Alias="HorizontalAlignment" />
+    <Using Include="System.Windows.Application" Alias="Application" />
+  </ItemGroup>
+
+</Project>

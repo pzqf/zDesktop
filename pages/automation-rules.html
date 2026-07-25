@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>自动化规则 - zDesktop</title>
+  <style id="theme-vars">
+    :root {
+      --dt-background: #0f1117;
+      --dt-foreground: #e8eaed;
+      --dt-card: #1a1d27;
+      --dt-card-foreground: #e8eaed;
+      --dt-popover: #1a1d27;
+      --dt-popover-foreground: #e8eaed;
+      --dt-primary: #6c5ce7;
+      --dt-primary-foreground: #ffffff;
+      --dt-muted: #2a2d3a;
+      --dt-muted-foreground: #9ca3af;
+      --dt-border: #2e3142;
+      --dt-input: #2a2d3a;
+      --dt-ring: #6c5ce7;
+      --dt-state-success: #10b981;
+      --dt-state-warning: #f59e0b;
+      --dt-state-error: #ef4444;
+      --dt-state-info: #3b82f6;
+      --dt-radius-sm: 6px;
+      --dt-radius-md: 10px;
+      --dt-radius-lg: 16px;
+    }
+  </style>
+  <style type="text/tailwindcss">
+    @theme inline {
+      --color-background: var(--dt-background);
+      --color-foreground: var(--dt-foreground);
+      --color-card: var(--dt-card);
+      --color-card-foreground: var(--dt-card-foreground);
+      --color-popover: var(--dt-popover);
+      --color-popover-foreground: var(--dt-popover-foreground);
+      --color-primary: var(--dt-primary);
+      --color-primary-foreground: var(--dt-primary-foreground);
+      --color-muted: var(--dt-muted);
+      --color-muted-foreground: var(--dt-muted-foreground);
+      --color-border: var(--dt-border);
+      --color-input: var(--dt-input);
+      --color-ring: var(--dt-ring);
+      --color-state-success: var(--dt-state-success);
+      --color-state-warning: var(--dt-state-warning);
+      --color-state-error: var(--dt-state-error);
+      --color-state-info: var(--dt-state-info);
+      --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+    @layer base {
+      body {
+        background-color: var(--dt-background);
+        color: var(--dt-foreground);
+        font-family: var(--font-sans);
+      }
+    }
+  </style>
+  <style id="semantic-token-fallback">
+    .bg-background { background-color: var(--dt-background); }
+    .text-foreground { color: var(--dt-foreground); }
+    .bg-card { background-color: var(--dt-card); }
+    .text-card-foreground { color: var(--dt-card-foreground); }
+    .bg-popover { background-color: var(--dt-popover); }
+    .text-popover-foreground { color: var(--dt-popover-foreground); }
+    .bg-primary { background-color: var(--dt-primary); }
+    .text-primary { color: var(--dt-primary); }
+    .bg-primary-foreground { background-color: var(--dt-primary-foreground); }
+    .text-primary-foreground { color: var(--dt-primary-foreground); }
+    .bg-muted { background-color: var(--dt-muted); }
+    .text-muted-foreground { color: var(--dt-muted-foreground); }
+    .border-border { border-color: var(--dt-border); }
+    .border-primary { border-color: var(--dt-primary); }
+    .border-l-primary { border-left-color: var(--dt-primary); }
+    .bg-input { background-color: var(--dt-input); }
+    .ring-ring { --tw-ring-color: var(--dt-ring); }
+    .text-state-success { color: var(--dt-state-success); }
+    .text-state-warning { color: var(--dt-state-warning); }
+    .text-state-error { color: var(--dt-state-error); }
+    .text-state-info { color: var(--dt-state-info); }
+    .bg-state-success { background-color: var(--dt-state-success); }
+    .bg-state-warning { background-color: var(--dt-state-warning); }
+    .bg-state-error { background-color: var(--dt-state-error); }
+    .bg-state-info { background-color: var(--dt-state-info); }
+    .hover\:bg-muted:hover { background-color: var(--dt-muted); }
+    .hover\:text-foreground:hover { color: var(--dt-foreground); }
+    .hover\:bg-primary\/10:hover { background-color: rgb(108 92 231 / 0.1); }
+    .hover\:text-primary:hover { color: var(--dt-primary); }
+    .hover\:border-primary\/30:hover { border-color: rgb(108 92 231 / 0.3); }
+    .hover\:opacity-90:hover { opacity: 0.9; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.7.0"></script>
+</head>
+<body class="h-screen overflow-hidden min-h-0 font-sans antialiased">
+  <main data-viewport-mode="app-shell" class="h-screen overflow-hidden min-h-0 flex">
+    <!-- Sidebar -->
+    <aside class="w-56 shrink-0 bg-muted border-r border-border flex flex-col">
+      <!-- Logo (clickable -> home) -->
+      <a href="#" data-dom-id="shortcut-home" class="flex items-center gap-2 px-4 py-5 cursor-pointer hover:opacity-80 transition-opacity">
+        <i data-lucide="monitor" class="w-5 h-5 text-primary"></i>
+        <span class="text-lg font-semibold text-foreground">zDesktop</span>
+      </a>
+
+      <!-- Nav sections -->
+      <nav class="flex flex-col gap-y-1 px-3 mt-1 flex-1 overflow-y-auto no-scrollbar">
+        <a href="#" data-dom-id="nav-home" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>首页</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">美化</p>
+        <a href="#" data-dom-id="nav-wallpaper-square" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span>壁纸广场</span>
+        </a>
+        <a href="#" data-dom-id="nav-desktop-widgets" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="widgets" class="w-4 h-4"></i>
+          <span>桌面组件</span>
+        </a>
+        <a href="#" data-dom-id="nav-taskbar" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="panel-bottom" class="w-4 h-4"></i>
+          <span>任务栏</span>
+        </a>
+        <a href="#" data-dom-id="nav-icon-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="palette" class="w-4 h-4"></i>
+          <span>图标管理</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">管理</p>
+        <a href="#" data-dom-id="nav-file-classify" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="folder-tree" class="w-4 h-4"></i>
+          <span>文件分类</span>
+        </a>
+        <a href="#" data-dom-id="nav-disk-mapper" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="hard-drive" class="w-4 h-4"></i>
+          <span>磁盘映射</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">效率</p>
+        <a href="#" data-dom-id="nav-global-search" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <span>全局搜索</span>
+        </a>
+        <a href="#" data-dom-id="nav-quick-launch" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="rocket" class="w-4 h-4"></i>
+          <span>快速启动器</span>
+        </a>
+        <a href="#" data-dom-id="nav-window-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="app-window" class="w-4 h-4"></i>
+          <span>窗口管理</span>
+        </a>
+        <a href="#" data-dom-id="nav-automation-rules" class="flex items-center gap-3 px-3 py-2.5 rounded-md bg-primary/10 text-primary text-sm font-medium">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          <span>自动化规则</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">系统</p>
+        <a href="#" data-dom-id="nav-control-center" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="settings-2" class="w-4 h-4"></i>
+          <span>控制中心</span>
+        </a>
+        <a href="#" data-dom-id="nav-settings" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span>设置</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">预览</p>
+        <a href="#" data-dom-id="nav-desktop-preview" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="monitor" class="w-4 h-4"></i>
+          <span>桌面效果图</span>
+        </a>
+      </nav>
+
+      <!-- Bottom: current wallpaper -->
+      <div class="mt-auto border-t border-border px-4 py-4">
+        <p class="text-xs text-muted-foreground mb-2">当前壁纸</p>
+        <div class="flex items-center gap-3">
+          <img src="../assets/wallpaper-mountain-lake.jpg" alt="当前壁纸" class="w-12 h-8 object-cover rounded-md border border-border">
+          <div class="min-w-0">
+            <p class="text-sm text-foreground truncate">山湖暮色</p>
+            <p class="text-xs text-muted-foreground">1920 x 1080</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Content area -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <!-- Header -->
+      <header class="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+        <div class="flex items-center gap-3 min-w-0">
+          <h1 class="text-xl font-semibold text-foreground whitespace-nowrap">自动化规则</h1>
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-state-success/10 text-state-success text-xs font-medium whitespace-nowrap">
+            <span class="w-1.5 h-1.5 rounded-full bg-state-success"></span>
+            已启用
+          </span>
+        </div>
+        <button class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity whitespace-nowrap">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>新建规则</span>
+        </button>
+      </header>
+
+      <!-- Body: two columns -->
+      <div class="flex-1 flex min-h-0 overflow-hidden">
+        <!-- Left column: categories + execution log -->
+        <div class="w-64 shrink-0 border-r border-border overflow-y-auto p-4 space-y-4 dt-scroll">
+          <!-- Category filter -->
+          <div>
+            <p class="text-xs text-muted-foreground uppercase tracking-wider mb-2 px-1">规则分类</p>
+            <div class="flex flex-col gap-1">
+              <button class="flex items-center justify-between px-3 py-2 rounded-md bg-primary/10 text-primary text-sm font-medium transition-colors">
+                <span class="flex items-center gap-2">
+                  <i data-lucide="layers" class="w-4 h-4"></i>
+                  <span>全部</span>
+                </span>
+                <span class="text-xs bg-primary/10 px-1.5 rounded">8</span>
+              </button>
+              <button class="flex items-center justify-between px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+                <span class="flex items-center gap-2">
+                  <i data-lucide="file" class="w-4 h-4"></i>
+                  <span>文件</span>
+                </span>
+                <span class="text-xs">5</span>
+              </button>
+              <button class="flex items-center justify-between px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+                <span class="flex items-center gap-2">
+                  <i data-lucide="app-window" class="w-4 h-4"></i>
+                  <span>应用</span>
+                </span>
+                <span class="text-xs">2</span>
+              </button>
+              <button class="flex items-center justify-between px-3 py-2 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+                <span class="flex items-center gap-2">
+                  <i data-lucide="cpu" class="w-4 h-4"></i>
+                  <span>系统</span>
+                </span>
+                <span class="text-xs">1</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Execution log -->
+          <div class="bg-card border border-border rounded-lg p-3 shadow-sm shadow-black/20">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-sm font-medium text-foreground">执行日志</p>
+              <i data-lucide="history" class="w-4 h-4 text-muted-foreground"></i>
+            </div>
+            <div class="space-y-3">
+              <!-- Log entry 1 -->
+              <div class="flex gap-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-state-success mt-1.5 shrink-0"></span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs text-foreground line-clamp-2">桌面截图 → 重命名为 截图_20260723_1432.png</p>
+                  <p class="text-[11px] text-muted-foreground mt-0.5">成功 · 2分钟前</p>
+                </div>
+              </div>
+              <!-- Log entry 2 -->
+              <div class="flex gap-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-state-success mt-1.5 shrink-0"></span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs text-foreground line-clamp-2">下载文件夹 → 移动 3 个 zip 到 D:\备份</p>
+                  <p class="text-[11px] text-muted-foreground mt-0.5">成功 · 15分钟前</p>
+                </div>
+              </div>
+              <!-- Log entry 3 -->
+              <div class="flex gap-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-state-success mt-1.5 shrink-0"></span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs text-foreground line-clamp-2">超过 30 天的临时文件 → 清理</p>
+                  <p class="text-[11px] text-muted-foreground mt-0.5">清理 12 项 · 1小时前</p>
+                </div>
+              </div>
+              <!-- Log entry 4 -->
+              <div class="flex gap-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-state-success mt-1.5 shrink-0"></span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs text-foreground line-clamp-2">VS Code 启动 → 自动左半屏</p>
+                  <p class="text-[11px] text-muted-foreground mt-0.5">成功 · 2小时前</p>
+                </div>
+              </div>
+              <!-- Log entry 5 -->
+              <div class="flex gap-2.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-state-warning mt-1.5 shrink-0"></span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs text-foreground line-clamp-2">微信文件 → 备份到 NAS</p>
+                  <p class="text-[11px] text-muted-foreground mt-0.5">跳过(网络未连接) · 3小时前</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main rule cards area -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-4 dt-scroll">
+          <!-- Rule 1: 截图自动重命名 (active) -->
+          <div class="bg-card border border-border rounded-lg p-4 shadow-sm shadow-black/20 hover:border-primary/30 transition-all border-l-2 border-l-primary">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-md bg-state-success/10 flex items-center justify-center shrink-0">
+                  <i data-lucide="image" class="w-5 h-5 text-state-success"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-foreground truncate">截图自动重命名</p>
+                  <p class="text-xs text-muted-foreground truncate">今日执行 7 次 · 2分钟前</p>
+                </div>
+              </div>
+              <div class="w-9 h-5 rounded-full bg-primary flex items-center px-0.5 justify-end shrink-0">
+                <div class="w-4 h-4 rounded-full bg-primary-foreground"></div>
+              </div>
+            </div>
+            <!-- IF -->
+            <div class="bg-muted/30 rounded-lg p-3 mb-1">
+              <p class="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">IF</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="folder" class="w-3 h-3"></i>监控 桌面
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="file-search" class="w-3 h-3"></i>文件名包含 'Screenshot'
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="image" class="w-3 h-3"></i>类型为 图片
+                </span>
+              </div>
+            </div>
+            <!-- Arrow -->
+            <div class="flex justify-center py-1">
+              <i data-lucide="arrow-down" class="w-4 h-4 text-primary"></i>
+            </div>
+            <!-- THEN -->
+            <div class="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <p class="text-[10px] font-semibold text-primary uppercase tracking-wider mb-2">THEN</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="edit-3" class="w-3 h-3"></i>重命名为 截图_{日期}_{时间}.png
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="pin" class="w-3 h-3"></i>保持在桌面
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rule 2: 下载文件自动归档 (active) -->
+          <div class="bg-card border border-border rounded-lg p-4 shadow-sm shadow-black/20 hover:border-primary/30 transition-all border-l-2 border-l-primary">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-md bg-state-warning/10 flex items-center justify-center shrink-0">
+                  <i data-lucide="folder-archive" class="w-5 h-5 text-state-warning"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-foreground truncate">下载文件自动归档</p>
+                  <p class="text-xs text-muted-foreground truncate">今日执行 3 次 · 15分钟前</p>
+                </div>
+              </div>
+              <div class="w-9 h-5 rounded-full bg-primary flex items-center px-0.5 justify-end shrink-0">
+                <div class="w-4 h-4 rounded-full bg-primary-foreground"></div>
+              </div>
+            </div>
+            <!-- IF -->
+            <div class="bg-muted/30 rounded-lg p-3 mb-1">
+              <p class="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">IF</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="folder" class="w-3 h-3"></i>监控 下载文件夹
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="file-archive" class="w-3 h-3"></i>文件类型为 .zip/.rar
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="maximize-2" class="w-3 h-3"></i>大小 > 10MB
+                </span>
+              </div>
+            </div>
+            <div class="flex justify-center py-1">
+              <i data-lucide="arrow-down" class="w-4 h-4 text-primary"></i>
+            </div>
+            <!-- THEN -->
+            <div class="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <p class="text-[10px] font-semibold text-primary uppercase tracking-wider mb-2">THEN</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="folder-input" class="w-3 h-3"></i>移动到 D:\备份\压缩包
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="calendar" class="w-3 h-3"></i>按月份创建子文件夹
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rule 3: 临时文件清理 (active) -->
+          <div class="bg-card border border-border rounded-lg p-4 shadow-sm shadow-black/20 hover:border-primary/30 transition-all border-l-2 border-l-primary">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-md bg-state-error/10 flex items-center justify-center shrink-0">
+                  <i data-lucide="trash-2" class="w-5 h-5 text-state-error"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-foreground truncate">临时文件清理</p>
+                  <p class="text-xs text-muted-foreground truncate">今日清理 12 项 (87.3 MB) · 1小时前</p>
+                </div>
+              </div>
+              <div class="w-9 h-5 rounded-full bg-primary flex items-center px-0.5 justify-end shrink-0">
+                <div class="w-4 h-4 rounded-full bg-primary-foreground"></div>
+              </div>
+            </div>
+            <!-- IF -->
+            <div class="bg-muted/30 rounded-lg p-3 mb-1">
+              <p class="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">IF</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="folder" class="w-3 h-3"></i>监控 %TEMP%
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="clock" class="w-3 h-3"></i>修改时间超过 30 天
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="ban" class="w-3 h-3"></i>排除 .lock 文件
+                </span>
+              </div>
+            </div>
+            <div class="flex justify-center py-1">
+              <i data-lucide="arrow-down" class="w-4 h-4 text-primary"></i>
+            </div>
+            <!-- THEN -->
+            <div class="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <p class="text-[10px] font-semibold text-primary uppercase tracking-wider mb-2">THEN</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="trash" class="w-3 h-3"></i>移入回收站
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="file-text" class="w-3 h-3"></i>记录清理日志
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rule 4: 微信文件备份 (active, with warning) -->
+          <div class="bg-card border border-border rounded-lg p-4 shadow-sm shadow-black/20 hover:border-primary/30 transition-all border-l-2 border-l-primary">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-md bg-state-info/10 flex items-center justify-center shrink-0">
+                  <i data-lucide="message-square" class="w-5 h-5 text-state-info"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-medium text-foreground truncate">微信文件备份</p>
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-state-warning/10 text-state-warning text-[10px] font-medium whitespace-nowrap shrink-0">
+                      <i data-lucide="alert-triangle" class="w-2.5 h-2.5"></i>网络未连接
+                    </span>
+                  </div>
+                  <p class="text-xs text-muted-foreground truncate">今日备份 15 个文件 · 3小时前</p>
+                </div>
+              </div>
+              <div class="w-9 h-5 rounded-full bg-primary flex items-center px-0.5 justify-end shrink-0">
+                <div class="w-4 h-4 rounded-full bg-primary-foreground"></div>
+              </div>
+            </div>
+            <!-- IF -->
+            <div class="bg-muted/30 rounded-lg p-3 mb-1">
+              <p class="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">IF</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="folder" class="w-3 h-3"></i>监控 微信文件接收文件夹
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="file" class="w-3 h-3"></i>类型为 文档/图片
+                </span>
+              </div>
+            </div>
+            <div class="flex justify-center py-1">
+              <i data-lucide="arrow-down" class="w-4 h-4 text-primary"></i>
+            </div>
+            <!-- THEN -->
+            <div class="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <p class="text-[10px] font-semibold text-primary uppercase tracking-wider mb-2">THEN</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="cloud-upload" class="w-3 h-3"></i>复制到 NAS:\备份\微信
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="copy" class="w-3 h-3"></i>保留原件
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rule 5: 项目文件同步 (inactive) -->
+          <div class="bg-card border border-border rounded-lg p-4 shadow-sm shadow-black/20 hover:border-primary/30 transition-all opacity-60">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+                  <i data-lucide="code" class="w-5 h-5 text-primary"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-medium text-foreground truncate">项目文件同步</p>
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-medium whitespace-nowrap shrink-0">
+                      已暂停
+                    </span>
+                  </div>
+                  <p class="text-xs text-muted-foreground truncate">昨日执行 23 次</p>
+                </div>
+              </div>
+              <div class="w-9 h-5 rounded-full bg-border flex items-center px-0.5 justify-start shrink-0">
+                <div class="w-4 h-4 rounded-full bg-muted-foreground"></div>
+              </div>
+            </div>
+            <!-- IF -->
+            <div class="bg-muted/30 rounded-lg p-3 mb-1">
+              <p class="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">IF</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="folder" class="w-3 h-3"></i>监控 D:\项目源码
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="clock" class="w-3 h-3"></i>修改时间在最近 1 小时
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-muted text-muted-foreground text-xs whitespace-nowrap">
+                  <i data-lucide="file-code" class="w-3 h-3"></i>类型为 .ts/.vue/.rs
+                </span>
+              </div>
+            </div>
+            <div class="flex justify-center py-1">
+              <i data-lucide="arrow-down" class="w-4 h-4 text-primary"></i>
+            </div>
+            <!-- THEN -->
+            <div class="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <p class="text-[10px] font-semibold text-primary uppercase tracking-wider mb-2">THEN</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="git-branch" class="w-3 h-3"></i>增量备份到 Git 仓库
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs whitespace-nowrap">
+                  <i data-lucide="message-circle" class="w-3 h-3"></i>提交信息: auto-sync {时间戳}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Template suggestions -->
+          <div class="pt-2">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="sparkles" class="w-4 h-4 text-primary"></i>
+              <p class="text-sm font-medium text-foreground">推荐规则模板</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="inline-flex items-center gap-1.5 bg-muted text-muted-foreground rounded-full px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors whitespace-nowrap">
+                <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>同步设计稿到云端
+              </span>
+              <span class="inline-flex items-center gap-1.5 bg-muted text-muted-foreground rounded-full px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors whitespace-nowrap">
+                <i data-lucide="folder-x" class="w-3.5 h-3.5"></i>清理空文件夹
+              </span>
+              <span class="inline-flex items-center gap-1.5 bg-muted text-muted-foreground rounded-full px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors whitespace-nowrap">
+                <i data-lucide="text-cursor" class="w-3.5 h-3.5"></i>重命名批量文件
+              </span>
+              <span class="inline-flex items-center gap-1.5 bg-muted text-muted-foreground rounded-full px-3 py-1.5 text-xs hover:bg-primary/10 hover:text-primary cursor-pointer transition-colors whitespace-nowrap">
+                <i data-lucide="folder-tree" class="w-3.5 h-3.5"></i>按类型整理桌面
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Custom styles (placed before </body>, per free-explore mode rules) -->
+  <style>
+    .dt-scroll::-webkit-scrollbar { width: 6px; }
+    .dt-scroll::-webkit-scrollbar-track { background: transparent; }
+    .dt-scroll::-webkit-scrollbar-thumb { background-color: var(--dt-border); border-radius: 3px; }
+    .dt-scroll::-webkit-scrollbar-thumb:hover { background-color: var(--dt-muted-foreground); }
+  </style>
+
+  <script>lucide.createIcons();</script>
+</body>
+</html>

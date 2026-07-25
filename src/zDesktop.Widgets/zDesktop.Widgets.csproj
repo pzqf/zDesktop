@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\zDesktop.Core\zDesktop.Core.csproj" />
+    <ProjectReference Include="..\zDesktop.Shell\zDesktop.Shell.csproj" />
+  </ItemGroup>
+
+</Project>

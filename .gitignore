@@ -1,0 +1,15 @@
+# ===== 编译输出（统一到根 /bin，obj 仍在各项目下）=====
+/bin/
+**/bin/
+**/obj/
+
+# ===== Visual Studio / IDE =====
+.vs/
+*.user
+*.suo
+.idea/
+.vscode/
+
+# ===== 日志与临时文件 =====
+*.log
+*.tmp

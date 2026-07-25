@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图标管理</title>
+    <style id="theme-vars">
+:root {
+  /* Brand Colors */
+  --dt-background: #0f1117;
+  --dt-foreground: #e8eaed;
+  --dt-card: #1a1d27;
+  --dt-card-foreground: #e8eaed;
+  --dt-popover: #1a1d27;
+  --dt-popover-foreground: #e8eaed;
+  --dt-primary: #6c5ce7;
+  --dt-primary-foreground: #ffffff;
+  --dt-muted: #2a2d3a;
+  --dt-muted-foreground: #9ca3af;
+  --dt-border: #2e3142;
+  --dt-input: #2a2d3a;
+  --dt-ring: #6c5ce7;
+  --dt-state-success: #10b981;
+  --dt-state-warning: #f59e0b;
+  --dt-state-error: #ef4444;
+  --dt-state-info: #3b82f6;
+  --dt-radius-sm: 6px;
+  --dt-radius-md: 10px;
+  --dt-radius-lg: 16px;
+}
+
+body {
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  background-color: var(--dt-background);
+  color: var(--dt-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--dt-background);
+    --color-foreground: var(--dt-foreground);
+    --color-card: var(--dt-card);
+    --color-card-foreground: var(--dt-card-foreground);
+    --color-popover: var(--dt-popover);
+    --color-popover-foreground: var(--dt-popover-foreground);
+    --color-primary: var(--dt-primary);
+    --color-primary-foreground: var(--dt-primary-foreground);
+    --color-muted: var(--dt-muted);
+    --color-muted-foreground: var(--dt-muted-foreground);
+    --color-border: var(--dt-border);
+    --color-input: var(--dt-input);
+    --color-ring: var(--dt-ring);
+    --color-state-success: var(--dt-state-success);
+    --color-state-warning: var(--dt-state-warning);
+    --color-state-error: var(--dt-state-error);
+    --color-state-info: var(--dt-state-info);
+    --radius-sm: var(--dt-radius-sm);
+    --radius-md: var(--dt-radius-md);
+    --radius-lg: var(--dt-radius-lg);
+  }
+  @layer base {
+    body { background: var(--dt-background); color: var(--dt-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--dt-background); }
+      .text-background { color: var(--dt-background); }
+      .border-background { border-color: var(--dt-background); }
+      .ring-background { --tw-ring-color: var(--dt-background); }
+      .ring-offset-background { --tw-ring-offset-color: var(--dt-background); }
+      .bg-foreground { background-color: var(--dt-foreground); }
+      .text-foreground { color: var(--dt-foreground); }
+      .border-foreground { border-color: var(--dt-foreground); }
+      .ring-foreground { --tw-ring-color: var(--dt-foreground); }
+      .bg-card { background-color: var(--dt-card); }
+      .text-card { color: var(--dt-card); }
+      .border-card { border-color: var(--dt-card); }
+      .ring-card { --tw-ring-color: var(--dt-card); }
+      .bg-card-foreground { background-color: var(--dt-card-foreground); }
+      .text-card-foreground { color: var(--dt-card-foreground); }
+      .border-card-foreground { border-color: var(--dt-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--dt-card-foreground); }
+      .bg-popover { background-color: var(--dt-popover); }
+      .text-popover { color: var(--dt-popover); }
+      .border-popover { border-color: var(--dt-popover); }
+      .ring-popover { --tw-ring-color: var(--dt-popover); }
+      .bg-popover-foreground { background-color: var(--dt-popover-foreground); }
+      .text-popover-foreground { color: var(--dt-popover-foreground); }
+      .border-popover-foreground { border-color: var(--dt-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--dt-popover-foreground); }
+      .bg-primary { background-color: var(--dt-primary); }
+      .text-primary { color: var(--dt-primary); }
+      .border-primary { border-color: var(--dt-primary); }
+      .ring-primary { --tw-ring-color: var(--dt-primary); }
+      .bg-primary-foreground { background-color: var(--dt-primary-foreground); }
+      .text-primary-foreground { color: var(--dt-primary-foreground); }
+      .border-primary-foreground { border-color: var(--dt-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--dt-primary-foreground); }
+      .bg-muted { background-color: var(--dt-muted); }
+      .text-muted { color: var(--dt-muted); }
+      .border-muted { border-color: var(--dt-muted); }
+      .ring-muted { --tw-ring-color: var(--dt-muted); }
+      .bg-muted-foreground { background-color: var(--dt-muted-foreground); }
+      .text-muted-foreground { color: var(--dt-muted-foreground); }
+      .border-muted-foreground { border-color: var(--dt-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--dt-muted-foreground); }
+      .bg-border { background-color: var(--dt-border); }
+      .text-border { color: var(--dt-border); }
+      .border-border { border-color: var(--dt-border); }
+      .ring-border { --tw-ring-color: var(--dt-border); }
+      .bg-input { background-color: var(--dt-input); }
+      .text-input { color: var(--dt-input); }
+      .border-input { border-color: var(--dt-input); }
+      .ring-input { --tw-ring-color: var(--dt-input); }
+      .bg-ring { background-color: var(--dt-ring); }
+      .text-ring { color: var(--dt-ring); }
+      .border-ring { border-color: var(--dt-ring); }
+      .ring-ring { --tw-ring-color: var(--dt-ring); }
+      .bg-state-success { background-color: var(--dt-state-success); }
+      .text-state-success { color: var(--dt-state-success); }
+      .border-state-success { border-color: var(--dt-state-success); }
+      .bg-state-warning { background-color: var(--dt-state-warning); }
+      .text-state-warning { color: var(--dt-state-warning); }
+      .border-state-warning { border-color: var(--dt-state-warning); }
+      .bg-state-error { background-color: var(--dt-state-error); }
+      .text-state-error { color: var(--dt-state-error); }
+      .bg-state-info { background-color: var(--dt-state-info); }
+      .text-state-info { color: var(--dt-state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="h-screen overflow-hidden min-h-0 font-sans antialiased">
+    <main data-viewport-mode="app-shell" class="h-screen overflow-hidden min-h-0 flex">
+
+      <!-- ===== Sidebar ===== -->
+      <aside class="w-56 shrink-0 bg-muted border-r border-border flex flex-col">
+        <!-- Logo (clickable -> home) -->
+        <a href="#" data-dom-id="shortcut-home" class="flex items-center gap-2 px-4 py-5 cursor-pointer hover:opacity-80 transition-opacity">
+          <i data-lucide="monitor" class="w-5 h-5 text-primary"></i>
+          <span class="text-lg font-semibold text-foreground">zDesktop</span>
+        </a>
+
+        <!-- Nav sections -->
+        <nav class="flex flex-col gap-y-1 px-3 mt-1 flex-1 overflow-y-auto no-scrollbar">
+          <a href="#" data-dom-id="nav-home" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>首页</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">美化</p>
+          <a href="#" data-dom-id="nav-wallpaper-square" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            <span>壁纸广场</span>
+          </a>
+          <a href="#" data-dom-id="nav-desktop-widgets" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="widgets" class="w-4 h-4"></i>
+            <span>桌面组件</span>
+          </a>
+          <a href="#" data-dom-id="nav-taskbar" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="panel-bottom" class="w-4 h-4"></i>
+            <span>任务栏</span>
+          </a>
+          <a href="#" data-dom-id="nav-icon-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md bg-primary/10 text-primary text-sm font-medium">
+            <i data-lucide="palette" class="w-4 h-4"></i>
+            <span>图标管理</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">管理</p>
+          <a href="#" data-dom-id="nav-file-classify" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="folder-tree" class="w-4 h-4"></i>
+            <span>文件分类</span>
+          </a>
+          <a href="#" data-dom-id="nav-disk-mapper" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="hard-drive" class="w-4 h-4"></i>
+            <span>磁盘映射</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">效率</p>
+          <a href="#" data-dom-id="nav-global-search" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>全局搜索</span>
+          </a>
+          <a href="#" data-dom-id="nav-quick-launch" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            <span>快速启动器</span>
+          </a>
+          <a href="#" data-dom-id="nav-window-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="app-window" class="w-4 h-4"></i>
+            <span>窗口管理</span>
+          </a>
+          <a href="#" data-dom-id="nav-automation-rules" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>自动化规则</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">系统</p>
+          <a href="#" data-dom-id="nav-control-center" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings-2" class="w-4 h-4"></i>
+            <span>控制中心</span>
+          </a>
+          <a href="#" data-dom-id="nav-settings" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            <span>设置</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">预览</p>
+          <a href="#" data-dom-id="nav-desktop-preview" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="monitor" class="w-4 h-4"></i>
+            <span>桌面效果图</span>
+          </a>
+        </nav>
+
+        <!-- Bottom: current wallpaper -->
+        <div class="mt-auto border-t border-border px-4 py-4">
+          <p class="text-xs text-muted-foreground mb-2">当前壁纸</p>
+          <div class="flex items-center gap-3">
+            <img src="../assets/wallpaper-mountain-lake.jpg" alt="当前壁纸" class="w-12 h-8 object-cover rounded-md border border-border">
+            <div class="min-w-0">
+              <p class="text-sm text-foreground truncate">山湖暮色</p>
+              <p class="text-xs text-muted-foreground">1920 x 1080</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ===== Content area ===== -->
+      <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+
+        <!-- Top bar -->
+        <header class="flex items-center justify-between px-6 py-4 border-b border-border shrink-0 gap-4">
+          <div class="flex items-center gap-3 min-w-0">
+            <h1 class="text-xl font-semibold text-foreground truncate">图标管理</h1>
+            <span class="inline-flex items-center gap-1.5 bg-state-success/10 text-state-success text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0">
+              <span class="w-1.5 h-1.5 rounded-full bg-state-success"></span>
+              已启用
+            </span>
+          </div>
+          <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg px-4 py-2 text-sm transition-colors inline-flex items-center gap-2 whitespace-nowrap shrink-0">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            还原默认
+          </button>
+        </header>
+
+        <!-- Main scrollable content -->
+        <div data-scroll-region="primary" class="flex-1 overflow-y-auto min-h-0 p-6 flex flex-col gap-6">
+
+          <!-- ===== Section 1: 图标着色 ===== -->
+          <section class="bg-card border border-border rounded-lg p-5 shadow-sm shadow-black/20">
+            <div class="mb-5">
+              <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
+                <i data-lucide="palette" class="w-4 h-4 text-primary"></i>
+                图标着色
+              </h2>
+              <p class="text-xs text-muted-foreground mt-1">统一桌面图标色调，与壁纸更协调</p>
+            </div>
+
+            <!-- Color palette picker -->
+            <div class="mb-5">
+              <p class="text-xs text-muted-foreground mb-2.5">选择着色颜色</p>
+              <div class="flex items-center gap-3 flex-wrap">
+                <button class="w-8 h-8 rounded-full border-2 border-border cursor-pointer ring-2 ring-primary ring-offset-2 ring-offset-background transition-transform hover:scale-110" style="background-color:#6c5ce7" aria-label="紫色"></button>
+                <button class="w-8 h-8 rounded-full border-2 border-border cursor-pointer transition-transform hover:scale-110" style="background-color:#3b82f6" aria-label="蓝色"></button>
+                <button class="w-8 h-8 rounded-full border-2 border-border cursor-pointer transition-transform hover:scale-110" style="background-color:#10b981" aria-label="绿色"></button>
+                <button class="w-8 h-8 rounded-full border-2 border-border cursor-pointer transition-transform hover:scale-110" style="background-color:#f59e0b" aria-label="橙色"></button>
+                <button class="w-8 h-8 rounded-full border-2 border-border cursor-pointer transition-transform hover:scale-110" style="background-color:#ef4444" aria-label="红色"></button>
+                <button class="w-8 h-8 rounded-full border-2 border-border cursor-pointer transition-transform hover:scale-110" style="background-color:#ec4899" aria-label="粉色"></button>
+                <button class="w-8 h-8 rounded-full border-2 border-border cursor-pointer transition-transform hover:scale-110" style="background-color:#14b8a6" aria-label="青色"></button>
+                <button class="w-8 h-8 rounded-full border-2 border-border cursor-pointer transition-transform hover:scale-110" style="background-color:#ffffff" aria-label="白色"></button>
+                <div class="w-px h-6 bg-border mx-1"></div>
+                <button class="bg-primary text-primary-foreground rounded-lg px-3 py-1.5 text-xs font-medium inline-flex items-center gap-1.5 hover:opacity-90 transition-opacity whitespace-nowrap">
+                  <i data-lucide="wand-sparkles" class="w-3.5 h-3.5"></i>
+                  自动匹配壁纸
+                </button>
+              </div>
+            </div>
+
+            <!-- Coloring mode tabs -->
+            <div class="mb-5">
+              <p class="text-xs text-muted-foreground mb-2.5">着色范围</p>
+              <div class="inline-flex items-center gap-1 p-1 bg-muted rounded-lg">
+                <button class="px-3 py-1.5 rounded-md text-xs font-medium bg-card text-foreground shadow-sm whitespace-nowrap">全部图标</button>
+                <button class="px-3 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">仅文件夹</button>
+                <button class="px-3 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">仅应用</button>
+                <button class="px-3 py-1.5 rounded-md text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">仅系统</button>
+              </div>
+            </div>
+
+            <!-- Before/After preview -->
+            <div class="mb-5">
+              <p class="text-xs text-muted-foreground mb-2.5">效果预览</p>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <div class="h-32 rounded-lg bg-muted border border-border p-4 flex items-center justify-around">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#3b82f6"><i data-lucide="monitor" class="w-5 h-5 text-white"></i></div>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#f59e0b"><i data-lucide="folder" class="w-5 h-5 text-white"></i></div>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#10b981"><i data-lucide="globe" class="w-5 h-5 text-white"></i></div>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#9ca3af"><i data-lucide="trash-2" class="w-5 h-5 text-white"></i></div>
+                  </div>
+                  <p class="text-xs text-muted-foreground text-center mt-2">原始</p>
+                </div>
+                <div>
+                  <div class="h-32 rounded-lg bg-muted border border-border p-4 flex items-center justify-around">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#6c5ce7"><i data-lucide="monitor" class="w-5 h-5 text-white"></i></div>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#6c5ce7"><i data-lucide="folder" class="w-5 h-5 text-white"></i></div>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#6c5ce7"><i data-lucide="globe" class="w-5 h-5 text-white"></i></div>
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#6c5ce7"><i data-lucide="trash-2" class="w-5 h-5 text-white"></i></div>
+                  </div>
+                  <p class="text-xs text-muted-foreground text-center mt-2">着色后</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="flex flex-col gap-4 pt-4 border-t border-border">
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex flex-col gap-0.5 min-w-0">
+                  <span class="text-sm font-medium text-foreground">着色强度</span>
+                  <span class="text-xs text-muted-foreground">调整图标着色的深浅程度</span>
+                </div>
+                <div class="flex items-center gap-3 shrink-0 w-56">
+                  <input type="range" min="0" max="100" value="60" class="dt-slider flex-1" aria-label="着色强度">
+                  <span class="text-sm text-foreground font-medium w-10 text-right whitespace-nowrap">60%</span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex flex-col gap-0.5 min-w-0 flex-1 mr-4">
+                  <span class="text-sm font-medium text-foreground">保留原始图标色彩</span>
+                  <span class="text-xs text-muted-foreground">某些系统图标不参与着色</span>
+                </div>
+                <button class="shrink-0 w-9 h-5 rounded-full bg-muted relative transition-all cursor-pointer" data-toggle="off" aria-pressed="false" aria-label="保留原始图标色彩">
+                  <span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-md transition-all"></span>
+                </button>
+              </div>
+              <div class="flex justify-end pt-1">
+                <button class="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity shadow-sm shadow-primary/20 inline-flex items-center gap-2 whitespace-nowrap">
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  应用着色
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== Section 2: 图标替换 ===== -->
+          <section class="bg-card border border-border rounded-lg p-5 shadow-sm shadow-black/20">
+            <div class="flex items-center justify-between gap-3 mb-5">
+              <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
+                <i data-lucide="arrow-left-right" class="w-4 h-4 text-primary"></i>
+                图标替换
+              </h2>
+              <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg px-3 py-1.5 text-xs transition-colors inline-flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                批量替换
+              </button>
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+              <!-- Row 1: 此电脑 (replaced) -->
+              <div class="bg-card border border-border rounded-lg p-3 flex items-center gap-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="relative shrink-0">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#3b82f6">
+                    <i data-lucide="monitor" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-state-success flex items-center justify-center ring-2 ring-card">
+                    <i data-lucide="check" class="w-2.5 h-2.5 text-white"></i>
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1 flex items-center gap-2">
+                  <span class="text-sm font-medium text-foreground truncate">此电脑</span>
+                  <span class="inline-flex items-center bg-muted text-muted-foreground text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">系统</span>
+                </div>
+                <span class="inline-flex items-center justify-center bg-state-success/10 text-state-success text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[52px]">已替换</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>更换
+                  </button>
+                  <button class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="rotate-ccw" class="w-3 h-3"></i>还原
+                  </button>
+                </div>
+              </div>
+
+              <!-- Row 2: 回收站 (default) -->
+              <div class="bg-card border border-border rounded-lg p-3 flex items-center gap-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="relative shrink-0">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#6b7280">
+                    <i data-lucide="trash-2" class="w-5 h-5 text-white"></i>
+                  </div>
+                </div>
+                <div class="min-w-0 flex-1 flex items-center gap-2">
+                  <span class="text-sm font-medium text-foreground truncate">回收站</span>
+                  <span class="inline-flex items-center bg-muted text-muted-foreground text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">系统</span>
+                </div>
+                <span class="inline-flex items-center justify-center bg-muted text-muted-foreground text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[52px]">默认</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>更换
+                  </button>
+                </div>
+              </div>
+
+              <!-- Row 3: Chrome (replaced) -->
+              <div class="bg-card border border-border rounded-lg p-3 flex items-center gap-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="relative shrink-0">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#3b82f6">
+                    <i data-lucide="globe" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-state-success flex items-center justify-center ring-2 ring-card">
+                    <i data-lucide="check" class="w-2.5 h-2.5 text-white"></i>
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1 flex items-center gap-2">
+                  <span class="text-sm font-medium text-foreground truncate">Chrome</span>
+                  <span class="inline-flex items-center bg-muted text-muted-foreground text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">应用</span>
+                </div>
+                <span class="inline-flex items-center justify-center bg-state-success/10 text-state-success text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[52px]">已替换</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>更换
+                  </button>
+                  <button class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="rotate-ccw" class="w-3 h-3"></i>还原
+                  </button>
+                </div>
+              </div>
+
+              <!-- Row 4: VS Code (replaced) -->
+              <div class="bg-card border border-border rounded-lg p-3 flex items-center gap-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="relative shrink-0">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#3b82f6">
+                    <i data-lucide="code" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-state-success flex items-center justify-center ring-2 ring-card">
+                    <i data-lucide="check" class="w-2.5 h-2.5 text-white"></i>
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1 flex items-center gap-2">
+                  <span class="text-sm font-medium text-foreground truncate">VS Code</span>
+                  <span class="inline-flex items-center bg-muted text-muted-foreground text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">应用</span>
+                </div>
+                <span class="inline-flex items-center justify-center bg-state-success/10 text-state-success text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[52px]">已替换</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>更换
+                  </button>
+                  <button class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="rotate-ccw" class="w-3 h-3"></i>还原
+                  </button>
+                </div>
+              </div>
+
+              <!-- Row 5: 工作文件 (default) -->
+              <div class="bg-card border border-border rounded-lg p-3 flex items-center gap-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="relative shrink-0">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#f59e0b">
+                    <i data-lucide="folder" class="w-5 h-5 text-white"></i>
+                  </div>
+                </div>
+                <div class="min-w-0 flex-1 flex items-center gap-2">
+                  <span class="text-sm font-medium text-foreground truncate">工作文件</span>
+                  <span class="inline-flex items-center bg-muted text-muted-foreground text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">文件夹</span>
+                </div>
+                <span class="inline-flex items-center justify-center bg-muted text-muted-foreground text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[52px]">默认</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>更换
+                  </button>
+                </div>
+              </div>
+
+              <!-- Row 6: 项目源码 (replaced, custom folder) -->
+              <div class="bg-card border border-border rounded-lg p-3 flex items-center gap-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="relative shrink-0">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color:#f59e0b">
+                    <i data-lucide="folder-git-2" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-state-success flex items-center justify-center ring-2 ring-card">
+                    <i data-lucide="check" class="w-2.5 h-2.5 text-white"></i>
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1 flex items-center gap-2">
+                  <span class="text-sm font-medium text-foreground truncate">项目源码</span>
+                  <span class="inline-flex items-center bg-muted text-muted-foreground text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">文件夹</span>
+                </div>
+                <span class="inline-flex items-center justify-center bg-state-success/10 text-state-success text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[52px]">已替换</span>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>更换
+                  </button>
+                  <button class="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-2.5 py-1.5 text-xs transition-colors inline-flex items-center gap-1 whitespace-nowrap">
+                    <i data-lucide="rotate-ccw" class="w-3 h-3"></i>还原
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ===== Section 3: 图标包库 ===== -->
+          <section class="bg-card border border-border rounded-lg p-5 shadow-sm shadow-black/20">
+            <div class="flex items-center justify-between gap-3 mb-5">
+              <h2 class="text-base font-semibold text-foreground flex items-center gap-2">
+                <i data-lucide="package" class="w-4 h-4 text-primary"></i>
+                图标包库
+              </h2>
+              <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg px-3 py-1.5 text-xs transition-colors inline-flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                导入图标包
+              </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <!-- Pack 1: Fluent (selected, applied) -->
+              <div class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20 cursor-pointer ring-2 ring-primary ring-offset-2 ring-offset-background">
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#3b82f6"><i data-lucide="monitor" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#2563eb"><i data-lucide="folder" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#60a5fa"><i data-lucide="globe" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#1d4ed8"><i data-lucide="mail" class="w-4 h-4 text-white"></i></div>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <span class="text-sm font-medium text-foreground truncate block">Fluent</span>
+                    <span class="text-xs text-muted-foreground">120 图标</span>
+                  </div>
+                  <span class="inline-flex items-center justify-center bg-primary/15 text-primary text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[48px]">已应用</span>
+                </div>
+                <p class="text-xs text-muted-foreground mt-1.5 truncate">Microsoft 风格</p>
+              </div>
+
+              <!-- Pack 2: Papirus (download) -->
+              <div class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20 cursor-pointer">
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#ef4444"><i data-lucide="folder" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#3b82f6"><i data-lucide="globe" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#10b981"><i data-lucide="music" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#f59e0b"><i data-lucide="image" class="w-4 h-4 text-white"></i></div>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <span class="text-sm font-medium text-foreground truncate block">Papirus</span>
+                    <span class="text-xs text-muted-foreground">89 图标</span>
+                  </div>
+                  <span class="inline-flex items-center justify-center border border-border text-muted-foreground text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[48px]">下载</span>
+                </div>
+                <p class="text-xs text-muted-foreground mt-1.5 truncate">Linux 经典</p>
+              </div>
+
+              <!-- Pack 3: Numix (download) -->
+              <div class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20 cursor-pointer">
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#f59e0b"><i data-lucide="flame" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#ef4444"><i data-lucide="heart" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#ec4899"><i data-lucide="star" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#f97316"><i data-lucide="zap" class="w-4 h-4 text-white"></i></div>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <span class="text-sm font-medium text-foreground truncate block">Numix</span>
+                    <span class="text-xs text-muted-foreground">95 图标</span>
+                  </div>
+                  <span class="inline-flex items-center justify-center border border-border text-muted-foreground text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[48px]">下载</span>
+                </div>
+                <p class="text-xs text-muted-foreground mt-1.5 truncate">扁平化</p>
+              </div>
+
+              <!-- Pack 4: Tela (downloaded) -->
+              <div class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20 cursor-pointer">
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#4b5563"><i data-lucide="circle" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#6b7280"><i data-lucide="square" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#52525b"><i data-lucide="triangle" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#71717a"><i data-lucide="hexagon" class="w-4 h-4 text-white"></i></div>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <span class="text-sm font-medium text-foreground truncate block">Tela</span>
+                    <span class="text-xs text-muted-foreground">78 图标</span>
+                  </div>
+                  <span class="inline-flex items-center justify-center bg-state-success/10 text-state-success text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[48px]">已下载</span>
+                </div>
+                <p class="text-xs text-muted-foreground mt-1.5 truncate">简约线条</p>
+              </div>
+
+              <!-- Pack 5: WhiteSur (download) -->
+              <div class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20 cursor-pointer">
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#ffffff"><i data-lucide="command" class="w-4 h-4 text-background"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#3b82f6"><i data-lucide="terminal" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#60a5fa"><i data-lucide="folder" class="w-4 h-4 text-white"></i></div>
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color:#1e40af"><i data-lucide="music" class="w-4 h-4 text-white"></i></div>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <span class="text-sm font-medium text-foreground truncate block">WhiteSur</span>
+                    <span class="text-xs text-muted-foreground">112 图标</span>
+                  </div>
+                  <span class="inline-flex items-center justify-center border border-border text-muted-foreground text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[48px]">下载</span>
+                </div>
+                <p class="text-xs text-muted-foreground mt-1.5 truncate">macOS 风格</p>
+              </div>
+
+              <!-- Pack 6: 自定义 (import) -->
+              <div class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20 cursor-pointer">
+                <div class="relative grid grid-cols-2 gap-2 mb-3">
+                  <div class="w-8 h-8 rounded-lg border border-dashed border-border"></div>
+                  <div class="w-8 h-8 rounded-lg border border-dashed border-border"></div>
+                  <div class="w-8 h-8 rounded-lg border border-dashed border-border"></div>
+                  <div class="w-8 h-8 rounded-lg border border-dashed border-border"></div>
+                  <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <i data-lucide="plus" class="w-5 h-5 text-muted-foreground"></i>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <span class="text-sm font-medium text-foreground truncate block">自定义</span>
+                    <span class="text-xs text-muted-foreground">0 图标</span>
+                  </div>
+                  <span class="inline-flex items-center justify-center bg-primary/10 text-primary text-xs px-2 py-1 rounded-md whitespace-nowrap shrink-0 min-w-[48px]">导入</span>
+                </div>
+                <p class="text-xs text-muted-foreground mt-1.5 truncate">导入你的图标</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ===== Section 4: 底部操作栏 ===== -->
+        <div class="shrink-0 border-t border-border px-6 py-3 flex items-center justify-between gap-4">
+          <span class="text-sm text-muted-foreground truncate">已选择 <span class="text-foreground font-medium">6</span> 个图标</span>
+          <div class="flex items-center gap-2 shrink-0">
+            <button class="bg-primary text-primary-foreground rounded-lg px-4 py-2 text-sm font-medium hover:opacity-90 transition-opacity shadow-sm shadow-primary/20 inline-flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="palette" class="w-4 h-4"></i>批量着色
+            </button>
+            <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg px-4 py-2 text-sm transition-colors inline-flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="arrow-left-right" class="w-4 h-4"></i>批量替换
+            </button>
+            <button class="border border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg px-4 py-2 text-sm transition-colors inline-flex items-center gap-2 whitespace-nowrap">
+              <i data-lucide="download" class="w-4 h-4"></i>导出配置
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+    <style>
+      .dt-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 9999px;
+        background: linear-gradient(to right, var(--dt-primary) 0%, var(--dt-primary) 60%, var(--dt-muted) 60%, var(--dt-muted) 100%);
+        outline: none;
+        cursor: pointer;
+      }
+      .dt-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 2px solid var(--dt-primary);
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        transition: transform 0.15s ease;
+      }
+      .dt-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
+      }
+      .dt-slider::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #ffffff;
+        border: 2px solid var(--dt-primary);
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+      }
+      .dt-slider::-moz-range-track {
+        height: 6px;
+        border-radius: 9999px;
+        background: transparent;
+      }
+    </style>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

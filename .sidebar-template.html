@@ -1,0 +1,89 @@
+      <!-- ===== Sidebar ===== -->
+      <!-- INSTRUCTIONS: Replace the active nav item's classes from
+           "text-muted-foreground ... hover:bg-muted hover:text-foreground"
+           to "bg-primary/10 text-primary font-medium" (remove hover classes).
+           All other nav items keep the default muted style. -->
+      <aside class="w-56 shrink-0 bg-muted border-r border-border flex flex-col">
+        <!-- Logo (clickable -> home) -->
+        <a href="#" data-dom-id="shortcut-home" class="flex items-center gap-2 px-4 py-5 cursor-pointer hover:opacity-80 transition-opacity">
+          <i data-lucide="monitor" class="w-5 h-5 text-primary"></i>
+          <span class="text-lg font-semibold text-foreground">zDesktop</span>
+        </a>
+
+        <!-- Nav sections -->
+        <nav class="flex flex-col gap-y-1 px-3 mt-1 flex-1 overflow-y-auto no-scrollbar">
+          <a href="#" data-dom-id="nav-home" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>首页</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">美化</p>
+          <a href="#" data-dom-id="nav-wallpaper-square" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            <span>壁纸广场</span>
+          </a>
+          <a href="#" data-dom-id="nav-desktop-widgets" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="widgets" class="w-4 h-4"></i>
+            <span>桌面组件</span>
+          </a>
+          <a href="#" data-dom-id="nav-taskbar" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="panel-bottom" class="w-4 h-4"></i>
+            <span>任务栏</span>
+          </a>
+          <a href="#" data-dom-id="nav-icon-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="palette" class="w-4 h-4"></i>
+            <span>图标管理</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">管理</p>
+          <a href="#" data-dom-id="nav-file-classify" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="folder-tree" class="w-4 h-4"></i>
+            <span>文件分类</span>
+          </a>
+          <a href="#" data-dom-id="nav-disk-mapper" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="hard-drive" class="w-4 h-4"></i>
+            <span>磁盘映射</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">效率</p>
+          <a href="#" data-dom-id="nav-global-search" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>全局搜索</span>
+          </a>
+          <a href="#" data-dom-id="nav-quick-launch" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            <span>快速启动器</span>
+          </a>
+          <a href="#" data-dom-id="nav-window-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="app-window" class="w-4 h-4"></i>
+            <span>窗口管理</span>
+          </a>
+          <a href="#" data-dom-id="nav-automation-rules" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>自动化规则</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">系统</p>
+          <a href="#" data-dom-id="nav-control-center" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings-2" class="w-4 h-4"></i>
+            <span>控制中心</span>
+          </a>
+          <a href="#" data-dom-id="nav-settings" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            <span>设置</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">预览</p>
+          <a href="#" data-dom-id="nav-desktop-preview" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="monitor" class="w-4 h-4"></i>
+            <span>桌面效果图</span>
+          </a>
+        </nav>
+
+        <!-- Bottom: current wallpaper -->
+        <div class="mt-auto border-t border-border px-4 py-4">
+          <p class="text-xs text-muted-foreground mb-2">当前壁纸</p>
+          <div class="flex items-center gap-3">
+            <img src="../assets/wallpaper-mountain-lake.jpg" alt="当前壁纸" class="w-12 h-8 object-cover rounded-md border border-border">
+            <div class="min-w-0">
+              <p class="text-sm text-foreground truncate">山湖暮色</p>
+              <p class="text-xs text-muted-foreground">1920 x 1080</p>
+            </div>
+          </div>
+        </div>
+      </aside>

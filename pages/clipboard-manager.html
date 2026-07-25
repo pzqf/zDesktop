@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剪贴板历史</title>
+    <style id="theme-vars">
+:root {
+  /* Brand Colors */
+  --dt-background: #0f1117;
+  --dt-foreground: #e8eaed;
+  --dt-card: #1a1d27;
+  --dt-card-foreground: #e8eaed;
+  --dt-popover: #1a1d27;
+  --dt-popover-foreground: #e8eaed;
+  --dt-primary: #6c5ce7;
+  --dt-primary-foreground: #ffffff;
+  --dt-muted: #2a2d3a;
+  --dt-muted-foreground: #9ca3af;
+  --dt-border: #2e3142;
+  --dt-input: #2a2d3a;
+  --dt-ring: #6c5ce7;
+  --dt-state-success: #10b981;
+  --dt-state-warning: #f59e0b;
+  --dt-state-error: #ef4444;
+  --dt-state-info: #3b82f6;
+  --dt-radius-sm: 6px;
+  --dt-radius-md: 10px;
+  --dt-radius-lg: 16px;
+}
+
+body {
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  background-color: var(--dt-background);
+  color: var(--dt-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--dt-background);
+    --color-foreground: var(--dt-foreground);
+    --color-card: var(--dt-card);
+    --color-card-foreground: var(--dt-card-foreground);
+    --color-popover: var(--dt-popover);
+    --color-popover-foreground: var(--dt-popover-foreground);
+    --color-primary: var(--dt-primary);
+    --color-primary-foreground: var(--dt-primary-foreground);
+    --color-muted: var(--dt-muted);
+    --color-muted-foreground: var(--dt-muted-foreground);
+    --color-border: var(--dt-border);
+    --color-input: var(--dt-input);
+    --color-ring: var(--dt-ring);
+    --color-state-success: var(--dt-state-success);
+    --color-state-warning: var(--dt-state-warning);
+    --color-state-error: var(--dt-state-error);
+    --color-state-info: var(--dt-state-info);
+    --radius-sm: var(--dt-radius-sm);
+    --radius-md: var(--dt-radius-md);
+    --radius-lg: var(--dt-radius-lg);
+  }
+  @layer base {
+    body { background: var(--dt-background); color: var(--dt-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--dt-background); }
+      .text-background { color: var(--dt-background); }
+      .border-background { border-color: var(--dt-background); }
+      .ring-background { --tw-ring-color: var(--dt-background); }
+      .ring-offset-background { --tw-ring-offset-color: var(--dt-background); }
+      .bg-foreground { background-color: var(--dt-foreground); }
+      .text-foreground { color: var(--dt-foreground); }
+      .border-foreground { border-color: var(--dt-foreground); }
+      .ring-foreground { --tw-ring-color: var(--dt-foreground); }
+      .bg-card { background-color: var(--dt-card); }
+      .text-card { color: var(--dt-card); }
+      .border-card { border-color: var(--dt-card); }
+      .ring-card { --tw-ring-color: var(--dt-card); }
+      .bg-card-foreground { background-color: var(--dt-card-foreground); }
+      .text-card-foreground { color: var(--dt-card-foreground); }
+      .border-card-foreground { border-color: var(--dt-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--dt-card-foreground); }
+      .bg-popover { background-color: var(--dt-popover); }
+      .text-popover { color: var(--dt-popover); }
+      .border-popover { border-color: var(--dt-popover); }
+      .ring-popover { --tw-ring-color: var(--dt-popover); }
+      .bg-popover-foreground { background-color: var(--dt-popover-foreground); }
+      .text-popover-foreground { color: var(--dt-popover-foreground); }
+      .border-popover-foreground { border-color: var(--dt-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--dt-popover-foreground); }
+      .bg-primary { background-color: var(--dt-primary); }
+      .text-primary { color: var(--dt-primary); }
+      .border-primary { border-color: var(--dt-primary); }
+      .ring-primary { --tw-ring-color: var(--dt-primary); }
+      .bg-primary-foreground { background-color: var(--dt-primary-foreground); }
+      .text-primary-foreground { color: var(--dt-primary-foreground); }
+      .border-primary-foreground { border-color: var(--dt-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--dt-primary-foreground); }
+      .bg-muted { background-color: var(--dt-muted); }
+      .text-muted { color: var(--dt-muted); }
+      .border-muted { border-color: var(--dt-muted); }
+      .ring-muted { --tw-ring-color: var(--dt-muted); }
+      .bg-muted-foreground { background-color: var(--dt-muted-foreground); }
+      .text-muted-foreground { color: var(--dt-muted-foreground); }
+      .border-muted-foreground { border-color: var(--dt-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--dt-muted-foreground); }
+      .bg-border { background-color: var(--dt-border); }
+      .text-border { color: var(--dt-border); }
+      .border-border { border-color: var(--dt-border); }
+      .ring-border { --tw-ring-color: var(--dt-border); }
+      .bg-input { background-color: var(--dt-input); }
+      .text-input { color: var(--dt-input); }
+      .border-input { border-color: var(--dt-input); }
+      .ring-input { --tw-ring-color: var(--dt-input); }
+      .bg-ring { background-color: var(--dt-ring); }
+      .text-ring { color: var(--dt-ring); }
+      .border-ring { border-color: var(--dt-ring); }
+      .ring-ring { --tw-ring-color: var(--dt-ring); }
+      .bg-state-success { background-color: var(--dt-state-success); }
+      .text-state-success { color: var(--dt-state-success); }
+      .border-state-success { border-color: var(--dt-state-success); }
+      .bg-state-warning { background-color: var(--dt-state-warning); }
+      .text-state-warning { color: var(--dt-state-warning); }
+      .border-state-warning { border-color: var(--dt-state-warning); }
+      .bg-state-error { background-color: var(--dt-state-error); }
+      .text-state-error { color: var(--dt-state-error); }
+      .bg-state-info { background-color: var(--dt-state-info); }
+      .text-state-info { color: var(--dt-state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="h-screen overflow-hidden min-h-0 font-sans antialiased">
+    <main data-viewport-mode="app-shell" class="h-screen overflow-hidden min-h-0 flex">
+
+      <!-- ===== Sidebar ===== -->
+      <aside class="w-56 shrink-0 bg-muted border-r border-border flex flex-col">
+        <!-- Logo (clickable -> home) -->
+        <a href="#" data-dom-id="shortcut-home" class="flex items-center gap-2 px-4 py-5 cursor-pointer hover:opacity-80 transition-opacity">
+          <i data-lucide="monitor" class="w-5 h-5 text-primary"></i>
+          <span class="text-lg font-semibold text-foreground">zDesktop</span>
+        </a>
+
+        <!-- Nav sections -->
+        <nav class="flex flex-col gap-y-1 px-3 mt-1 flex-1 overflow-y-auto no-scrollbar">
+          <a href="#" data-dom-id="nav-home" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>首页</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">美化</p>
+          <a href="#" data-dom-id="nav-wallpaper-square" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            <span>壁纸广场</span>
+          </a>
+          <a href="#" data-dom-id="nav-desktop-widgets" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="widgets" class="w-4 h-4"></i>
+            <span>桌面组件</span>
+          </a>
+          <a href="#" data-dom-id="nav-taskbar" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="panel-bottom" class="w-4 h-4"></i>
+            <span>任务栏</span>
+          </a>
+          <a href="#" data-dom-id="nav-icon-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="palette" class="w-4 h-4"></i>
+            <span>图标管理</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">管理</p>
+          <a href="#" data-dom-id="nav-file-classify" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="folder-tree" class="w-4 h-4"></i>
+            <span>文件分类</span>
+          </a>
+          <a href="#" data-dom-id="nav-disk-mapper" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="hard-drive" class="w-4 h-4"></i>
+            <span>磁盘映射</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">效率</p>
+          <a href="#" data-dom-id="nav-global-search" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>全局搜索</span>
+          </a>
+          <a href="#" data-dom-id="nav-quick-launch" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            <span>快速启动器</span>
+          </a>
+          <a href="#" data-dom-id="nav-window-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="app-window" class="w-4 h-4"></i>
+            <span>窗口管理</span>
+          </a>
+          <a href="#" data-dom-id="nav-automation-rules" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>自动化规则</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">系统</p>
+          <a href="#" data-dom-id="nav-control-center" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings-2" class="w-4 h-4"></i>
+            <span>控制中心</span>
+          </a>
+          <a href="#" data-dom-id="nav-settings" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            <span>设置</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">预览</p>
+          <a href="#" data-dom-id="nav-desktop-preview" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="monitor" class="w-4 h-4"></i>
+            <span>桌面效果图</span>
+          </a>
+        </nav>
+
+        <!-- Bottom: current wallpaper -->
+        <div class="mt-auto border-t border-border px-4 py-4">
+          <p class="text-xs text-muted-foreground mb-2">当前壁纸</p>
+          <div class="flex items-center gap-3">
+            <img src="../assets/wallpaper-mountain-lake.jpg" alt="当前壁纸" class="w-12 h-8 object-cover rounded-md border border-border">
+            <div class="min-w-0">
+              <p class="text-sm text-foreground truncate">山湖暮色</p>
+              <p class="text-xs text-muted-foreground">1920 x 1080</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ===== Content area ===== -->
+      <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+
+        <!-- Top bar -->
+        <header class="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+          <div class="flex items-center gap-3 min-w-0">
+            <h1 class="text-xl font-semibold text-foreground whitespace-nowrap">剪贴板历史</h1>
+            <span class="inline-flex items-center gap-1.5 bg-primary/10 text-primary rounded-full px-3 py-1 text-xs whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>已启用
+            </span>
+          </div>
+          <div class="flex items-center gap-4 shrink-0">
+            <div class="flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
+              <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+              <span>今日复制 <span class="text-foreground font-medium">47</span> 次</span>
+            </div>
+            <button class="p-2 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors" title="设置">
+              <i data-lucide="settings" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- Main: filter panel + list + settings panel -->
+        <div class="flex-1 overflow-hidden min-h-0 flex">
+
+          <!-- Left filter panel -->
+          <aside class="w-64 shrink-0 border-r border-border flex flex-col bg-muted/30">
+            <!-- Search -->
+            <div class="p-4">
+              <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" placeholder="搜索剪贴板内容..." class="w-full bg-input border border-border rounded-md pl-9 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring">
+              </div>
+            </div>
+            <!-- Filter tabs -->
+            <nav class="flex flex-col gap-1 px-3 flex-1 overflow-y-auto no-scrollbar">
+              <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-1">类型</p>
+              <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-md bg-primary/10 text-primary text-sm font-medium transition-colors">
+                <span class="flex items-center gap-2.5 min-w-0"><i data-lucide="layers" class="w-4 h-4 shrink-0"></i><span class="truncate">全部</span></span>
+                <span class="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded-sm whitespace-nowrap">24</span>
+              </a>
+              <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+                <span class="flex items-center gap-2.5 min-w-0"><i data-lucide="file-text" class="w-4 h-4 shrink-0"></i><span class="truncate">文本</span></span>
+                <span class="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-sm whitespace-nowrap">15</span>
+              </a>
+              <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+                <span class="flex items-center gap-2.5 min-w-0"><i data-lucide="image" class="w-4 h-4 shrink-0"></i><span class="truncate">图片</span></span>
+                <span class="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-sm whitespace-nowrap">6</span>
+              </a>
+              <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+                <span class="flex items-center gap-2.5 min-w-0"><i data-lucide="folder" class="w-4 h-4 shrink-0"></i><span class="truncate">文件</span></span>
+                <span class="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-sm whitespace-nowrap">3</span>
+              </a>
+              <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+                <span class="flex items-center gap-2.5 min-w-0"><i data-lucide="link" class="w-4 h-4 shrink-0"></i><span class="truncate">链接</span></span>
+                <span class="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-sm whitespace-nowrap">4</span>
+              </a>
+            </nav>
+            <!-- Favorites -->
+            <div class="border-t border-border p-3">
+              <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-1 pb-1">收藏</p>
+              <a href="#" class="flex items-center justify-between px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+                <span class="flex items-center gap-2.5 min-w-0"><i data-lucide="star" class="w-4 h-4 shrink-0"></i><span class="truncate">已收藏</span></span>
+                <span class="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-sm whitespace-nowrap">5</span>
+              </a>
+            </div>
+          </aside>
+
+          <!-- Center: clipboard history list -->
+          <section data-scroll-region="primary" class="flex-1 overflow-y-auto min-h-0 bg-background">
+            <div class="max-w-2xl mx-auto p-6 flex flex-col gap-3">
+
+              <!-- List toolbar -->
+              <div class="flex items-center justify-between pb-1">
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span class="text-foreground font-medium text-sm">全部记录</span>
+                  <span class="whitespace-nowrap">共 24 条</span>
+                </div>
+                <button class="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
+                  <i data-lucide="arrow-down-up" class="w-3.5 h-3.5"></i>按时间排序
+                </button>
+              </div>
+
+              <!-- 1. Text item (most recent, highlighted, pinned) -->
+              <article class="bg-primary/5 border border-primary/30 rounded-lg p-4 hover:border-primary/40 transition-all shadow-sm shadow-black/20">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="inline-flex items-center bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">文本</span>
+                    <span class="inline-flex items-center bg-primary/15 text-primary text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">最新</span>
+                  </div>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button class="p-1.5 rounded-md hover:bg-muted text-primary transition-colors" title="取消置顶"><i data-lucide="pin" class="w-3.5 h-3.5"></i></button>
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="复制"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+                <p class="text-sm text-foreground line-clamp-2 mb-3">项目方案 v2.0 需要修改的部分：1. 首页交互流程需简化为三步；2. 配色方案调整为主品牌色系；3. 增加夜间模式适配；4. 优化首屏加载性能至 1.2s 以内</p>
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <i data-lucide="code-2" class="w-3 h-3 shrink-0"></i>
+                  <span class="truncate">VS Code</span>
+                  <span class="text-muted-foreground/60">·</span>
+                  <span class="whitespace-nowrap">刚刚</span>
+                </div>
+              </article>
+
+              <!-- 2. Image item -->
+              <article class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <span class="inline-flex items-center bg-state-info/10 text-state-info text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">图片</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="置顶"><i data-lucide="pin" class="w-3.5 h-3.5"></i></button>
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="复制"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+                <div class="w-full h-32 bg-gradient-to-br from-primary/20 to-state-info/10 rounded-md flex items-center justify-center mb-3">
+                  <i data-lucide="image" class="w-8 h-8 text-muted-foreground/60"></i>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <i data-lucide="globe" class="w-3 h-3 shrink-0"></i>
+                  <span class="truncate">浏览器</span>
+                  <span class="text-muted-foreground/60">·</span>
+                  <span class="whitespace-nowrap">3 分钟前</span>
+                </div>
+              </article>
+
+              <!-- 3. File item -->
+              <article class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <span class="inline-flex items-center bg-state-warning/10 text-state-warning text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">文件</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="置顶"><i data-lucide="pin" class="w-3.5 h-3.5"></i></button>
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="复制"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-md bg-state-warning/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="file-archive" class="w-5 h-5 text-state-warning"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm text-foreground truncate">project-v2.zip</p>
+                    <p class="text-xs text-muted-foreground whitespace-nowrap">58.2 MB</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <i data-lucide="folder" class="w-3 h-3 shrink-0"></i>
+                  <span class="truncate">文件管理器</span>
+                  <span class="text-muted-foreground/60">·</span>
+                  <span class="whitespace-nowrap">12 分钟前</span>
+                </div>
+              </article>
+
+              <!-- 4. Link item -->
+              <article class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <span class="inline-flex items-center bg-state-success/10 text-state-success text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">链接</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="置顶"><i data-lucide="pin" class="w-3.5 h-3.5"></i></button>
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="复制"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 mb-3 min-w-0">
+                  <i data-lucide="link" class="w-4 h-4 text-state-success shrink-0"></i>
+                  <span class="text-sm text-foreground truncate flex-1 font-mono">https://github.com/user/repo</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <i data-lucide="globe" class="w-3 h-3 shrink-0"></i>
+                  <span class="truncate">浏览器</span>
+                  <span class="text-muted-foreground/60">·</span>
+                  <span class="whitespace-nowrap">25 分钟前</span>
+                </div>
+              </article>
+
+              <!-- 5. Code snippet -->
+              <article class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <span class="inline-flex items-center bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">代码</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="置顶"><i data-lucide="pin" class="w-3.5 h-3.5"></i></button>
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="复制"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+                <pre class="text-xs text-foreground font-mono bg-background/60 border border-border rounded-md p-3 mb-3 overflow-x-auto no-scrollbar"><code>const debounce = (fn, delay) => {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+};</code></pre>
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <i data-lucide="code-2" class="w-3 h-3 shrink-0"></i>
+                  <span class="truncate">VS Code</span>
+                  <span class="text-muted-foreground/60">·</span>
+                  <span class="whitespace-nowrap">1 小时前</span>
+                </div>
+              </article>
+
+              <!-- 6. Text meeting note -->
+              <article class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="flex items-center justify-between gap-3 mb-2">
+                  <span class="inline-flex items-center bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">文本</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="置顶"><i data-lucide="pin" class="w-3.5 h-3.5"></i></button>
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="复制"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+                <p class="text-sm text-foreground line-clamp-2 mb-3">设计评审会议 - 2026年7月25日 14:00，会议室 B302，议题：v2.0 视觉规范定稿与组件库交付节奏</p>
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <i data-lucide="message-square" class="w-3 h-3 shrink-0"></i>
+                  <span class="truncate">钉钉</span>
+                  <span class="text-muted-foreground/60">·</span>
+                  <span class="whitespace-nowrap">2 小时前</span>
+                </div>
+              </article>
+
+              <!-- 7. Image item -->
+              <article class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <span class="inline-flex items-center bg-state-info/10 text-state-info text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">图片</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="置顶"><i data-lucide="pin" class="w-3.5 h-3.5"></i></button>
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="复制"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+                <div class="w-full h-32 bg-gradient-to-br from-state-success/20 to-primary/10 rounded-md flex items-center justify-center mb-3">
+                  <i data-lucide="image" class="w-8 h-8 text-muted-foreground/60"></i>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <i data-lucide="message-circle" class="w-3 h-3 shrink-0"></i>
+                  <span class="truncate">微信</span>
+                  <span class="text-muted-foreground/60">·</span>
+                  <span class="whitespace-nowrap">3 小时前</span>
+                </div>
+              </article>
+
+              <!-- 8. Pinned text item -->
+              <article class="bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all shadow-sm shadow-black/20">
+                <div class="flex items-start justify-between gap-3 mb-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="inline-flex items-center bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">文本</span>
+                    <span class="inline-flex items-center bg-primary/15 text-primary text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">置顶</span>
+                  </div>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <button class="p-1.5 rounded-md hover:bg-muted text-primary transition-colors" title="取消置顶"><i data-lucide="pin" class="w-3.5 h-3.5"></i></button>
+                    <button class="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="复制"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                  </div>
+                </div>
+                <p class="text-sm text-foreground font-mono mb-3 truncate">服务器配置: 192.168.1.100:8080</p>
+                <div class="flex items-center gap-2 text-xs text-muted-foreground">
+                  <i data-lucide="terminal" class="w-3 h-3 shrink-0"></i>
+                  <span class="truncate">终端</span>
+                  <span class="text-muted-foreground/60">·</span>
+                  <span class="whitespace-nowrap">昨天</span>
+                </div>
+              </article>
+
+            </div>
+          </section>
+
+          <!-- Right settings / preview panel -->
+          <aside class="w-72 shrink-0 border-l border-border flex flex-col bg-muted/30">
+
+            <!-- Preview -->
+            <div class="p-4 border-b border-border">
+              <p class="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">预览</p>
+              <div class="bg-background border border-border rounded-md p-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="inline-flex items-center bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-sm whitespace-nowrap">文本</span>
+                  <span class="text-[10px] text-muted-foreground whitespace-nowrap">刚刚 · VS Code</span>
+                </div>
+                <pre class="text-xs text-foreground font-mono whitespace-pre-wrap break-words line-clamp-6">项目方案 v2.0 需要修改的部分：
+1. 首页交互流程需简化为三步
+2. 配色方案调整为主品牌色系
+3. 增加夜间模式适配
+4. 优化首屏加载性能至 1.2s 以内</pre>
+              </div>
+            </div>
+
+            <!-- Settings -->
+            <div class="p-4 flex-1 overflow-y-auto no-scrollbar">
+              <p class="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">设置</p>
+
+              <!-- 最大记录数 -->
+              <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm text-foreground">最大记录数</span>
+                  <span class="text-xs text-primary font-medium whitespace-nowrap">500 条</span>
+                </div>
+                <input type="range" min="100" max="2000" step="100" value="500" class="w-full cursor-pointer" style="accent-color: var(--dt-primary)">
+                <div class="flex items-center justify-between mt-1">
+                  <span class="text-[10px] text-muted-foreground whitespace-nowrap">100</span>
+                  <span class="text-[10px] text-muted-foreground whitespace-nowrap">2000</span>
+                </div>
+              </div>
+
+              <!-- 自动清理 -->
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex flex-col gap-0.5 min-w-0 flex-1 mr-4">
+                  <span class="text-sm text-foreground">自动清理</span>
+                  <span class="text-xs text-muted-foreground truncate">超期记录自动删除</span>
+                </div>
+                <button class="shrink-0 w-9 h-5 rounded-full bg-primary relative transition-all cursor-pointer" data-toggle="on">
+                  <span class="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-white shadow-md transition-all"></span>
+                </button>
+              </div>
+
+              <!-- 保留天数 -->
+              <div class="flex items-center justify-between mb-5">
+                <span class="text-sm text-foreground">保留天数</span>
+                <span class="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
+                  <span class="text-foreground font-medium">30 天</span>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </span>
+              </div>
+
+              <!-- 排除应用 -->
+              <div class="mb-2">
+                <span class="text-sm text-foreground">排除应用</span>
+              </div>
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2 bg-muted rounded-md px-3 py-2">
+                  <i data-lucide="shield" class="w-3.5 h-3.5 text-state-warning shrink-0"></i>
+                  <span class="text-xs text-foreground truncate flex-1">密码管理器</span>
+                  <button class="text-muted-foreground hover:text-state-error transition-colors shrink-0" title="移除"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                </div>
+                <div class="flex items-center gap-2 bg-muted rounded-md px-3 py-2">
+                  <i data-lucide="landmark" class="w-3.5 h-3.5 text-state-success shrink-0"></i>
+                  <span class="text-xs text-foreground truncate flex-1">银行App</span>
+                  <button class="text-muted-foreground hover:text-state-error transition-colors shrink-0" title="移除"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                </div>
+                <button class="flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-primary border border-dashed border-border hover:border-primary/40 rounded-md py-2 transition-colors">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>添加排除应用
+                </button>
+              </div>
+            </div>
+
+            <!-- 清空历史 -->
+            <div class="p-4 border-t border-border">
+              <button class="w-full flex items-center justify-center gap-2 text-state-error text-sm font-medium rounded-md py-2.5 hover:bg-state-error/10 transition-colors">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>清空历史
+              </button>
+            </div>
+
+          </aside>
+
+        </div>
+
+      </div>
+
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

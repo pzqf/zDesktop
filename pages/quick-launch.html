@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>快速启动器 · zDesktop</title>
+    <style id="theme-vars">
+:root {
+  /* Brand Colors */
+  --dt-background: #0f1117;
+  --dt-foreground: #e8eaed;
+  --dt-card: #1a1d27;
+  --dt-card-foreground: #e8eaed;
+  --dt-popover: #1a1d27;
+  --dt-popover-foreground: #e8eaed;
+  --dt-primary: #6c5ce7;
+  --dt-primary-foreground: #ffffff;
+  --dt-muted: #2a2d3a;
+  --dt-muted-foreground: #9ca3af;
+  --dt-border: #2e3142;
+  --dt-input: #2a2d3a;
+  --dt-ring: #6c5ce7;
+  --dt-state-success: #10b981;
+  --dt-state-warning: #f59e0b;
+  --dt-state-error: #ef4444;
+  --dt-state-info: #3b82f6;
+  --dt-radius-sm: 6px;
+  --dt-radius-md: 10px;
+  --dt-radius-lg: 16px;
+}
+
+body {
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  background-color: var(--dt-background);
+  color: var(--dt-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--dt-background);
+    --color-foreground: var(--dt-foreground);
+    --color-card: var(--dt-card);
+    --color-card-foreground: var(--dt-card-foreground);
+    --color-popover: var(--dt-popover);
+    --color-popover-foreground: var(--dt-popover-foreground);
+    --color-primary: var(--dt-primary);
+    --color-primary-foreground: var(--dt-primary-foreground);
+    --color-muted: var(--dt-muted);
+    --color-muted-foreground: var(--dt-muted-foreground);
+    --color-border: var(--dt-border);
+    --color-input: var(--dt-input);
+    --color-ring: var(--dt-ring);
+    --color-state-success: var(--dt-state-success);
+    --color-state-warning: var(--dt-state-warning);
+    --color-state-error: var(--dt-state-error);
+    --color-state-info: var(--dt-state-info);
+    --radius-sm: var(--dt-radius-sm);
+    --radius-md: var(--dt-radius-md);
+    --radius-lg: var(--dt-radius-lg);
+  }
+  @layer base {
+    body { background: var(--dt-background); color: var(--dt-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--dt-background); }
+      .text-background { color: var(--dt-background); }
+      .border-background { border-color: var(--dt-background); }
+      .ring-background { --tw-ring-color: var(--dt-background); }
+      .bg-foreground { background-color: var(--dt-foreground); }
+      .text-foreground { color: var(--dt-foreground); }
+      .border-foreground { border-color: var(--dt-foreground); }
+      .ring-foreground { --tw-ring-color: var(--dt-foreground); }
+      .bg-card { background-color: var(--dt-card); }
+      .text-card { color: var(--dt-card); }
+      .border-card { border-color: var(--dt-card); }
+      .ring-card { --tw-ring-color: var(--dt-card); }
+      .bg-card-foreground { background-color: var(--dt-card-foreground); }
+      .text-card-foreground { color: var(--dt-card-foreground); }
+      .border-card-foreground { border-color: var(--dt-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--dt-card-foreground); }
+      .bg-popover { background-color: var(--dt-popover); }
+      .text-popover { color: var(--dt-popover); }
+      .border-popover { border-color: var(--dt-popover); }
+      .ring-popover { --tw-ring-color: var(--dt-popover); }
+      .bg-popover-foreground { background-color: var(--dt-popover-foreground); }
+      .text-popover-foreground { color: var(--dt-popover-foreground); }
+      .border-popover-foreground { border-color: var(--dt-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--dt-popover-foreground); }
+      .bg-primary { background-color: var(--dt-primary); }
+      .text-primary { color: var(--dt-primary); }
+      .border-primary { border-color: var(--dt-primary); }
+      .ring-primary { --tw-ring-color: var(--dt-primary); }
+      .bg-primary-foreground { background-color: var(--dt-primary-foreground); }
+      .text-primary-foreground { color: var(--dt-primary-foreground); }
+      .border-primary-foreground { border-color: var(--dt-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--dt-primary-foreground); }
+      .bg-muted { background-color: var(--dt-muted); }
+      .text-muted { color: var(--dt-muted); }
+      .border-muted { border-color: var(--dt-muted); }
+      .ring-muted { --tw-ring-color: var(--dt-muted); }
+      .bg-muted-foreground { background-color: var(--dt-muted-foreground); }
+      .text-muted-foreground { color: var(--dt-muted-foreground); }
+      .border-muted-foreground { border-color: var(--dt-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--dt-muted-foreground); }
+      .bg-border { background-color: var(--dt-border); }
+      .text-border { color: var(--dt-border); }
+      .border-border { border-color: var(--dt-border); }
+      .ring-border { --tw-ring-color: var(--dt-border); }
+      .bg-input { background-color: var(--dt-input); }
+      .text-input { color: var(--dt-input); }
+      .border-input { border-color: var(--dt-input); }
+      .ring-input { --tw-ring-color: var(--dt-input); }
+      .bg-ring { background-color: var(--dt-ring); }
+      .text-ring { color: var(--dt-ring); }
+      .border-ring { border-color: var(--dt-ring); }
+      .ring-ring { --tw-ring-color: var(--dt-ring); }
+      .bg-state-success { background-color: var(--dt-state-success); }
+      .text-state-success { color: var(--dt-state-success); }
+      .border-state-success { border-color: var(--dt-state-success); }
+      .ring-state-success { --tw-ring-color: var(--dt-state-success); }
+      .bg-state-warning { background-color: var(--dt-state-warning); }
+      .text-state-warning { color: var(--dt-state-warning); }
+      .border-state-warning { border-color: var(--dt-state-warning); }
+      .ring-state-warning { --tw-ring-color: var(--dt-state-warning); }
+      .bg-state-error { background-color: var(--dt-state-error); }
+      .text-state-error { color: var(--dt-state-error); }
+      .border-state-error { border-color: var(--dt-state-error); }
+      .ring-state-error { --tw-ring-color: var(--dt-state-error); }
+      .bg-state-info { background-color: var(--dt-state-info); }
+      .text-state-info { color: var(--dt-state-info); }
+      .border-state-info { border-color: var(--dt-state-info); }
+      .ring-state-info { --tw-ring-color: var(--dt-state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+      kbd {
+        background-color: var(--dt-muted);
+        color: var(--dt-muted-foreground);
+        border: 1px solid var(--dt-border);
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-size: 11px;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        line-height: 1.4;
+        white-space: nowrap;
+      }
+      /* Launcher thin scrollbar */
+      .launcher-scroll::-webkit-scrollbar { width: 6px; }
+      .launcher-scroll::-webkit-scrollbar-track { background: transparent; }
+      .launcher-scroll::-webkit-scrollbar-thumb { background: var(--dt-border); border-radius: 3px; }
+      .launcher-scroll::-webkit-scrollbar-thumb:hover { background: var(--dt-muted-foreground); }
+      .launcher-scroll { scrollbar-width: thin; scrollbar-color: var(--dt-border) transparent; }
+      /* Entrance animations (CSS-only, no DOM mutation) */
+      @keyframes launcher-in { from { opacity: 0; transform: translateY(-10px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes float-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+      .launcher-panel { animation: launcher-in 0.18s cubic-bezier(0.22, 1, 0.36, 1); }
+      .launcher-overlay { animation: overlay-in 0.2s ease-out; }
+      .float-ball { animation: float-in 0.3s ease-out 0.1s both; }
+      .float-ball:hover .float-tooltip { opacity: 1; transform: translateY(0); }
+      .float-tooltip { opacity: 0; transform: translateY(4px); transition: opacity 0.18s ease, transform 0.18s ease; }
+      @media (prefers-reduced-motion: reduce) {
+        .launcher-panel, .launcher-overlay, .float-ball { animation: none; }
+        .float-tooltip { transition: none; }
+      }
+    </style>
+</head>
+<body class="h-screen overflow-hidden min-h-0 font-sans antialiased">
+    <main data-viewport-mode="app-shell" class="h-screen overflow-hidden min-h-0 flex">
+
+      <!-- ===== Overlay launcher (Alt+Space) ===== -->
+      <div class="relative w-full h-full">
+
+        <!-- Desktop wallpaper hint (behind the blur) -->
+        <div class="absolute inset-0 bg-cover bg-center launcher-overlay"
+             style="background-image: url('../assets/wallpaper-mountain-lake.jpg'); opacity: 0.5;"></div>
+        <!-- Dim + blur overlay -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm launcher-overlay"></div>
+
+        <!-- Centered launcher panel -->
+        <div class="relative max-w-2xl w-full mx-auto mt-24 sm:mt-32 px-4">
+          <div class="launcher-panel bg-card/90 backdrop-blur-xl border border-border rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
+
+            <!-- ===== Search input ===== -->
+            <div class="relative flex items-center border-b border-border">
+              <i data-lucide="search" class="absolute left-6 w-5 h-5 text-primary pointer-events-none"></i>
+              <input
+                type="text"
+                value="calc"
+                aria-label="快速启动搜索"
+                class="w-full bg-transparent text-2xl text-foreground placeholder:text-muted-foreground pl-14 pr-36 py-5 focus:outline-none"
+              >
+              <div class="absolute right-6 flex items-center gap-2">
+                <kbd>Alt+Space</kbd>
+                <span class="text-muted-foreground/60 text-xs">·</span>
+                <kbd>Esc</kbd>
+              </div>
+            </div>
+
+            <!-- ===== Results area (scrollable) ===== -->
+            <div class="launcher-scroll overflow-y-auto max-h-96">
+
+              <!-- Section 1: 即时计算 (Instant Calculation) — highlighted first result -->
+              <div class="px-4 pt-4">
+                <div class="bg-primary/5 border border-primary/30 rounded-xl p-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
+                        <i data-lucide="calculator" class="w-3.5 h-3.5 text-primary"></i>
+                        <span class="font-semibold text-foreground">即时计算</span>
+                        <span class="font-mono">calc</span>
+                        <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                      </div>
+                      <p class="text-2xl font-semibold text-foreground font-mono tracking-tight truncate">
+                        12 * 8 + 45 = <span class="text-primary">141</span>
+                      </p>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <button class="flex items-center gap-1.5 bg-primary/10 text-primary rounded-md px-2.5 py-1 text-xs font-medium hover:bg-primary/20 transition-colors">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> 复制结果
+                      </button>
+                      <kbd>Enter</kbd>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 2: 应用 (Apps) -->
+              <div class="pt-4">
+                <div class="flex items-center gap-2 px-6 mb-1">
+                  <i data-lucide="app-window" class="w-3.5 h-3.5 text-muted-foreground"></i>
+                  <span class="text-xs font-semibold text-foreground uppercase tracking-wider">应用</span>
+                  <span class="text-xs text-muted-foreground">3</span>
+                </div>
+
+                <!-- App 1: Calculator (keyboard-selected) -->
+                <div class="flex items-center gap-4 px-6 py-3 bg-primary/5 cursor-pointer transition-colors relative">
+                  <span class="absolute left-0 top-0 bottom-0 w-0.5 bg-primary"></span>
+                  <div class="w-10 h-10 rounded-lg bg-state-info/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="calculator" class="w-5 h-5 text-state-info"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-foreground truncate">计算器</p>
+                    <p class="text-xs text-muted-foreground truncate">Calculator · 系统应用</p>
+                  </div>
+                  <button class="bg-primary/10 text-primary rounded-md px-2.5 py-1 text-xs font-medium hover:bg-primary/20 transition-colors shrink-0">打开</button>
+                </div>
+
+                <!-- App 2: CalcGraph Pro -->
+                <div class="flex items-center gap-4 px-6 py-3 hover:bg-muted/50 cursor-pointer transition-colors">
+                  <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="function-square" class="w-5 h-5 text-primary"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-foreground truncate">CalcGraph Pro</p>
+                    <p class="text-xs text-muted-foreground truncate">已安装 · v2.1</p>
+                  </div>
+                  <button class="bg-primary/10 text-primary rounded-md px-2.5 py-1 text-xs font-medium hover:bg-primary/20 transition-colors shrink-0">打开</button>
+                </div>
+
+                <!-- App 3: Console -->
+                <div class="flex items-center gap-4 px-6 py-3 hover:bg-muted/50 cursor-pointer transition-colors">
+                  <div class="w-10 h-10 rounded-lg bg-state-success/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="terminal" class="w-5 h-5 text-state-success"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-foreground truncate">终端</p>
+                    <p class="text-xs text-muted-foreground truncate">Console · 系统工具</p>
+                  </div>
+                  <button class="bg-primary/10 text-primary rounded-md px-2.5 py-1 text-xs font-medium hover:bg-primary/20 transition-colors shrink-0">打开</button>
+                </div>
+              </div>
+
+              <!-- Section 3: 文件 (Files) — Everything 集成 -->
+              <div class="pt-4">
+                <div class="flex items-center gap-2 px-6 mb-1">
+                  <i data-lucide="file-text" class="w-3.5 h-3.5 text-muted-foreground"></i>
+                  <span class="text-xs font-semibold text-foreground uppercase tracking-wider">文件</span>
+                  <span class="text-[10px] text-state-success bg-state-success/10 rounded-full px-2 py-0.5 whitespace-nowrap">Everything 秒级搜索</span>
+                </div>
+
+                <!-- File 1 -->
+                <div class="flex items-center gap-4 px-6 py-3 hover:bg-muted/50 cursor-pointer transition-colors">
+                  <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="file-code" class="w-5 h-5 text-primary"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-foreground truncate">calculator.rs</p>
+                    <p class="text-xs text-muted-foreground truncate">D:\Projects\zDesktop\src-tauri\src\calculator.rs</p>
+                  </div>
+                  <span class="bg-muted text-muted-foreground text-[10px] px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">12 KB</span>
+                </div>
+
+                <!-- File 2 -->
+                <div class="flex items-center gap-4 px-6 py-3 hover:bg-muted/50 cursor-pointer transition-colors">
+                  <div class="w-10 h-10 rounded-lg bg-state-success/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="sheet" class="w-5 h-5 text-state-success"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-foreground truncate">calc_results.xlsx</p>
+                    <p class="text-xs text-muted-foreground truncate">D:\Documents\Reports\2024\calc_results.xlsx</p>
+                  </div>
+                  <span class="bg-muted text-muted-foreground text-[10px] px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">45 KB</span>
+                </div>
+              </div>
+
+              <!-- Section 4: 命令 (Commands) -->
+              <div class="pt-4">
+                <div class="flex items-center gap-2 px-6 mb-1">
+                  <i data-lucide="command" class="w-3.5 h-3.5 text-muted-foreground"></i>
+                  <span class="text-xs font-semibold text-foreground uppercase tracking-wider">命令</span>
+                </div>
+
+                <!-- Command 1: Translate (EN→ZH mini preview) -->
+                <div class="flex items-center gap-4 px-6 py-3 hover:bg-muted/50 cursor-pointer transition-colors">
+                  <div class="w-10 h-10 rounded-lg bg-state-info/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="languages" class="w-5 h-5 text-state-info"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-foreground truncate">翻译: calc → 计算</p>
+                    <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span class="bg-muted/70 text-state-info rounded px-1 text-[10px] font-semibold whitespace-nowrap">EN</span>
+                      <i data-lucide="arrow-right" class="w-3 h-3 shrink-0"></i>
+                      <span class="bg-muted/70 text-state-success rounded px-1 text-[10px] font-semibold whitespace-nowrap">ZH</span>
+                      <span class="truncate">calculation · 计算</span>
+                    </div>
+                  </div>
+                  <kbd class="shrink-0">Enter</kbd>
+                </div>
+
+                <!-- Command 2: Open Calculator -->
+                <div class="flex items-center gap-4 px-6 py-3 hover:bg-muted/50 cursor-pointer transition-colors">
+                  <div class="w-10 h-10 rounded-lg bg-state-warning/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="mouse-pointer" class="w-5 h-5 text-state-warning"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-foreground truncate">打开计算器</p>
+                    <p class="text-xs text-muted-foreground truncate">系统命令 · 启动 Windows 计算器</p>
+                  </div>
+                  <kbd class="shrink-0">Enter</kbd>
+                </div>
+              </div>
+
+              <!-- Section 5: 网页搜索 -->
+              <div class="pt-4 pb-2">
+                <div class="flex items-center gap-2 px-6 mb-1">
+                  <i data-lucide="globe" class="w-3.5 h-3.5 text-muted-foreground"></i>
+                  <span class="text-xs font-semibold text-foreground uppercase tracking-wider">网页搜索</span>
+                </div>
+
+                <div class="flex items-center gap-4 px-6 py-3 hover:bg-muted/50 cursor-pointer transition-colors">
+                  <div class="w-10 h-10 rounded-lg bg-state-info/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="globe" class="w-5 h-5 text-state-info"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-foreground truncate">在 Google 搜索 'calc'</p>
+                    <p class="text-xs text-muted-foreground truncate">google.com/search?q=calc</p>
+                  </div>
+                  <kbd class="shrink-0">Ctrl+Enter</kbd>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- ===== Bottom bar ===== -->
+            <div class="flex items-center justify-between gap-3 px-6 py-3 border-t border-border">
+              <div class="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+                <span class="flex items-center gap-1"><kbd>↑</kbd><kbd>↓</kbd> 导航</span>
+                <span class="flex items-center gap-1"><kbd>Enter</kbd> 打开</span>
+                <span class="flex items-center gap-1"><kbd>Tab</kbd> 切换分类</span>
+              </div>
+              <div class="flex items-center gap-2 text-xs text-muted-foreground shrink-0">
+                <span class="w-2 h-2 rounded-full bg-state-success shadow-[0_0_6px_var(--dt-state-success)]"></span>
+                <span class="whitespace-nowrap">Everything 已连接</span>
+                <span class="text-muted-foreground/60 whitespace-nowrap hidden sm:inline">· 索引 287,432 文件</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ===== Floating ball (desktop resident) ===== -->
+        <div class="float-ball absolute bottom-8 right-8">
+          <div class="relative">
+            <div class="w-12 h-12 rounded-full bg-primary/80 backdrop-blur shadow-lg shadow-primary/40 flex items-center justify-center cursor-pointer hover:bg-primary hover:scale-105 transition-all">
+              <i data-lucide="rocket" class="w-5 h-5 text-primary-foreground"></i>
+            </div>
+            <div class="float-tooltip absolute right-0 bottom-14 whitespace-nowrap bg-popover text-popover-foreground text-xs rounded-md px-2.5 py-1.5 border border-border shadow-lg pointer-events-none">
+              常驻桌面
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

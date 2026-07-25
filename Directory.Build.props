@@ -1,0 +1,10 @@
+<Project>
+
+  <!-- 统一编译输出到仓库根目录 /bin/$(Configuration)/，不再追加框架子目录 -->
+  <PropertyGroup>
+    <OutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+</Project>

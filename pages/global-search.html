@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全局搜索</title>
+    <style id="theme-vars">
+:root {
+  /* Brand Colors */
+  --dt-background: #0f1117;
+  --dt-foreground: #e8eaed;
+  --dt-card: #1a1d27;
+  --dt-card-foreground: #e8eaed;
+  --dt-popover: #1a1d27;
+  --dt-popover-foreground: #e8eaed;
+  --dt-primary: #6c5ce7;
+  --dt-primary-foreground: #ffffff;
+  --dt-muted: #2a2d3a;
+  --dt-muted-foreground: #9ca3af;
+  --dt-border: #2e3142;
+  --dt-input: #2a2d3a;
+  --dt-ring: #6c5ce7;
+  --dt-state-success: #10b981;
+  --dt-state-warning: #f59e0b;
+  --dt-state-error: #ef4444;
+  --dt-state-info: #3b82f6;
+  --dt-radius-sm: 6px;
+  --dt-radius-md: 10px;
+  --dt-radius-lg: 16px;
+}
+
+body {
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  background-color: var(--dt-background);
+  color: var(--dt-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--dt-background);
+    --color-foreground: var(--dt-foreground);
+    --color-card: var(--dt-card);
+    --color-card-foreground: var(--dt-card-foreground);
+    --color-popover: var(--dt-popover);
+    --color-popover-foreground: var(--dt-popover-foreground);
+    --color-primary: var(--dt-primary);
+    --color-primary-foreground: var(--dt-primary-foreground);
+    --color-muted: var(--dt-muted);
+    --color-muted-foreground: var(--dt-muted-foreground);
+    --color-border: var(--dt-border);
+    --color-input: var(--dt-input);
+    --color-ring: var(--dt-ring);
+    --color-state-success: var(--dt-state-success);
+    --color-state-warning: var(--dt-state-warning);
+    --color-state-error: var(--dt-state-error);
+    --color-state-info: var(--dt-state-info);
+    --radius-sm: var(--dt-radius-sm);
+    --radius-md: var(--dt-radius-md);
+    --radius-lg: var(--dt-radius-lg);
+  }
+  @layer base {
+    body { background: var(--dt-background); color: var(--dt-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--dt-background); }
+      .text-background { color: var(--dt-background); }
+      .border-background { border-color: var(--dt-background); }
+      .ring-background { --tw-ring-color: var(--dt-background); }
+      .bg-foreground { background-color: var(--dt-foreground); }
+      .text-foreground { color: var(--dt-foreground); }
+      .border-foreground { border-color: var(--dt-foreground); }
+      .ring-foreground { --tw-ring-color: var(--dt-foreground); }
+      .bg-card { background-color: var(--dt-card); }
+      .text-card { color: var(--dt-card); }
+      .border-card { border-color: var(--dt-card); }
+      .ring-card { --tw-ring-color: var(--dt-card); }
+      .bg-card-foreground { background-color: var(--dt-card-foreground); }
+      .text-card-foreground { color: var(--dt-card-foreground); }
+      .border-card-foreground { border-color: var(--dt-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--dt-card-foreground); }
+      .bg-popover { background-color: var(--dt-popover); }
+      .text-popover { color: var(--dt-popover); }
+      .border-popover { border-color: var(--dt-popover); }
+      .ring-popover { --tw-ring-color: var(--dt-popover); }
+      .bg-popover-foreground { background-color: var(--dt-popover-foreground); }
+      .text-popover-foreground { color: var(--dt-popover-foreground); }
+      .border-popover-foreground { border-color: var(--dt-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--dt-popover-foreground); }
+      .bg-primary { background-color: var(--dt-primary); }
+      .text-primary { color: var(--dt-primary); }
+      .border-primary { border-color: var(--dt-primary); }
+      .ring-primary { --tw-ring-color: var(--dt-primary); }
+      .bg-primary-foreground { background-color: var(--dt-primary-foreground); }
+      .text-primary-foreground { color: var(--dt-primary-foreground); }
+      .border-primary-foreground { border-color: var(--dt-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--dt-primary-foreground); }
+      .bg-muted { background-color: var(--dt-muted); }
+      .text-muted { color: var(--dt-muted); }
+      .border-muted { border-color: var(--dt-muted); }
+      .ring-muted { --tw-ring-color: var(--dt-muted); }
+      .bg-muted-foreground { background-color: var(--dt-muted-foreground); }
+      .text-muted-foreground { color: var(--dt-muted-foreground); }
+      .border-muted-foreground { border-color: var(--dt-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--dt-muted-foreground); }
+      .bg-border { background-color: var(--dt-border); }
+      .text-border { color: var(--dt-border); }
+      .border-border { border-color: var(--dt-border); }
+      .ring-border { --tw-ring-color: var(--dt-border); }
+      .bg-input { background-color: var(--dt-input); }
+      .text-input { color: var(--dt-input); }
+      .border-input { border-color: var(--dt-input); }
+      .ring-input { --tw-ring-color: var(--dt-input); }
+      .bg-ring { background-color: var(--dt-ring); }
+      .text-ring { color: var(--dt-ring); }
+      .border-ring { border-color: var(--dt-ring); }
+      .ring-ring { --tw-ring-color: var(--dt-ring); }
+      .bg-state-success { background-color: var(--dt-state-success); }
+      .text-state-success { color: var(--dt-state-success); }
+      .border-state-success { border-color: var(--dt-state-success); }
+      .ring-state-success { --tw-ring-color: var(--dt-state-success); }
+      .bg-state-warning { background-color: var(--dt-state-warning); }
+      .text-state-warning { color: var(--dt-state-warning); }
+      .border-state-warning { border-color: var(--dt-state-warning); }
+      .ring-state-warning { --tw-ring-color: var(--dt-state-warning); }
+      .bg-state-error { background-color: var(--dt-state-error); }
+      .text-state-error { color: var(--dt-state-error); }
+      .border-state-error { border-color: var(--dt-state-error); }
+      .ring-state-error { --tw-ring-color: var(--dt-state-error); }
+      .bg-state-info { background-color: var(--dt-state-info); }
+      .text-state-info { color: var(--dt-state-info); }
+      .border-state-info { border-color: var(--dt-state-info); }
+      .ring-state-info { --tw-ring-color: var(--dt-state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+      mark { background-color: rgba(108,92,231,0.2); color: var(--dt-primary); border-radius: 3px; padding: 0 3px; }
+      kbd { background-color: var(--dt-muted); color: var(--dt-muted-foreground); border: 1px solid var(--dt-border); border-radius: 4px; padding: 1px 5px; font-size: 10px; font-family: monospace; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden min-h-0 font-sans antialiased">
+    <main data-viewport-mode="app-shell" class="h-screen overflow-hidden min-h-0 flex">
+
+      <!-- ===== Sidebar ===== -->
+      <!-- INSTRUCTIONS: Replace the active nav item's classes from
+           "text-muted-foreground ... hover:bg-muted hover:text-foreground"
+           to "bg-primary/10 text-primary font-medium" (remove hover classes).
+           All other nav items keep the default muted style. -->
+      <aside class="w-56 shrink-0 bg-muted border-r border-border flex flex-col">
+        <!-- Logo (clickable -> home) -->
+        <a href="#" data-dom-id="shortcut-home" class="flex items-center gap-2 px-4 py-5 cursor-pointer hover:opacity-80 transition-opacity">
+          <i data-lucide="monitor" class="w-5 h-5 text-primary"></i>
+          <span class="text-lg font-semibold text-foreground">zDesktop</span>
+        </a>
+
+        <!-- Nav sections -->
+        <nav class="flex flex-col gap-y-1 px-3 mt-1 flex-1 overflow-y-auto no-scrollbar">
+          <a href="#" data-dom-id="nav-home" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>首页</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">美化</p>
+          <a href="#" data-dom-id="nav-wallpaper-square" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+            <span>壁纸广场</span>
+          </a>
+          <a href="#" data-dom-id="nav-desktop-widgets" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="widgets" class="w-4 h-4"></i>
+            <span>桌面组件</span>
+          </a>
+          <a href="#" data-dom-id="nav-taskbar" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="panel-bottom" class="w-4 h-4"></i>
+            <span>任务栏</span>
+          </a>
+          <a href="#" data-dom-id="nav-icon-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="palette" class="w-4 h-4"></i>
+            <span>图标管理</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">管理</p>
+          <a href="#" data-dom-id="nav-file-classify" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="folder-tree" class="w-4 h-4"></i>
+            <span>文件分类</span>
+          </a>
+          <a href="#" data-dom-id="nav-disk-mapper" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="hard-drive" class="w-4 h-4"></i>
+            <span>磁盘映射</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">效率</p>
+          <a href="#" data-dom-id="nav-global-search" class="flex items-center gap-3 px-3 py-2.5 rounded-md bg-primary/10 text-primary text-sm font-medium">
+            <i data-lucide="search" class="w-4 h-4"></i>
+            <span>全局搜索</span>
+          </a>
+          <a href="#" data-dom-id="nav-quick-launch" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            <span>快速启动器</span>
+          </a>
+          <a href="#" data-dom-id="nav-window-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="app-window" class="w-4 h-4"></i>
+            <span>窗口管理</span>
+          </a>
+          <a href="#" data-dom-id="nav-automation-rules" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>自动化规则</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">系统</p>
+          <a href="#" data-dom-id="nav-control-center" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings-2" class="w-4 h-4"></i>
+            <span>控制中心</span>
+          </a>
+          <a href="#" data-dom-id="nav-settings" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            <span>设置</span>
+          </a>
+          <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">预览</p>
+          <a href="#" data-dom-id="nav-desktop-preview" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+            <i data-lucide="monitor" class="w-4 h-4"></i>
+            <span>桌面效果图</span>
+          </a>
+        </nav>
+
+        <!-- Bottom: current wallpaper -->
+        <div class="mt-auto border-t border-border px-4 py-4">
+          <p class="text-xs text-muted-foreground mb-2">当前壁纸</p>
+          <div class="flex items-center gap-3">
+            <img src="../assets/wallpaper-mountain-lake.jpg" alt="当前壁纸" class="w-12 h-8 object-cover rounded-md border border-border">
+            <div class="min-w-0">
+              <p class="text-sm text-foreground truncate">山湖暮色</p>
+              <p class="text-xs text-muted-foreground">1920 x 1080</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ===== Content area ===== -->
+      <div class="flex-1 flex flex-col overflow-hidden min-h-0">
+
+        <!-- Top bar -->
+        <header class="shrink-0 h-12 px-6 border-b border-border flex items-center justify-between">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+              <i data-lucide="search" class="w-4 h-4 text-primary"></i>
+            </div>
+            <h1 class="text-sm font-semibold text-foreground leading-tight truncate">全局搜索</h1>
+            <span class="hidden sm:inline text-xs text-muted-foreground truncate">快速查找文件、应用与设置</span>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button class="w-8 h-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors" title="重建索引">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+            <button class="w-8 h-8 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors" title="搜索设置">
+              <i data-lucide="settings-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- Search hero -->
+        <div class="px-6 pt-6 pb-3 shrink-0">
+          <div class="relative w-full max-w-2xl">
+            <div class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center pointer-events-none">
+              <i data-lucide="search" class="w-4 h-4 text-primary"></i>
+            </div>
+            <input
+              type="text"
+              value="项目方案"
+              placeholder="搜索文件、应用、设置或网页…"
+              class="search-input w-full bg-card border-2 border-primary rounded-xl pl-14 pr-24 py-3.5 text-base text-foreground placeholder:text-muted-foreground/70 shadow-lg shadow-primary/15 focus:outline-none"
+            >
+            <kbd class="absolute right-3 top-1/2 -translate-y-1/2 select-none whitespace-nowrap">Ctrl+Space</kbd>
+          </div>
+          <!-- Keyboard navigation hints + Everything engine status -->
+          <div class="flex items-center justify-between mt-3 max-w-2xl gap-4">
+            <div class="flex items-center gap-3 text-xs text-muted-foreground">
+              <span class="flex items-center gap-1"><kbd>↑</kbd><kbd>↓</kbd><span class="ml-1">导航</span></span>
+              <span class="flex items-center gap-1"><kbd>Enter</kbd><span class="ml-1">打开</span></span>
+              <span class="flex items-center gap-1"><kbd>Esc</kbd><span class="ml-1">关闭</span></span>
+            </div>
+            <span class="flex items-center gap-2 text-xs text-state-success whitespace-nowrap">
+              <span class="relative flex w-2 h-2 shrink-0">
+                <span class="absolute inline-flex w-full h-full rounded-full bg-state-success/60 animate-ping"></span>
+                <span class="relative inline-flex w-2 h-2 rounded-full bg-state-success"></span>
+              </span>
+              <span>Everything 引擎已连接</span>
+              <span class="text-muted-foreground">·</span>
+              <span class="text-foreground font-medium tabular-nums">287,432</span>
+              <span class="text-muted-foreground">个文件</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Search filter tabs -->
+        <div class="flex items-center gap-2.5 px-6 pb-3 shrink-0">
+          <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm bg-primary/10 text-primary border border-primary/30 font-medium transition-colors whitespace-nowrap">
+            全部 <span class="bg-primary/20 text-primary text-[10px] rounded-md px-1.5 py-0.5 tabular-nums">6</span>
+          </button>
+          <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm bg-card text-muted-foreground border border-border hover:text-foreground hover:border-primary/30 transition-colors whitespace-nowrap">
+            文件 <span class="bg-muted text-muted-foreground text-[10px] rounded-md px-1.5 py-0.5 tabular-nums">4</span>
+          </button>
+          <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm bg-card text-muted-foreground border border-border hover:text-foreground hover:border-primary/30 transition-colors whitespace-nowrap">
+            应用 <span class="bg-muted text-muted-foreground text-[10px] rounded-md px-1.5 py-0.5 tabular-nums">2</span>
+          </button>
+          <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm bg-card text-muted-foreground border border-border hover:text-foreground hover:border-primary/30 transition-colors whitespace-nowrap">
+            设置 <span class="bg-muted text-muted-foreground text-[10px] rounded-md px-1.5 py-0.5 tabular-nums">0</span>
+          </button>
+          <button class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm bg-card text-muted-foreground border border-border hover:text-foreground hover:border-primary/30 transition-colors whitespace-nowrap">
+            网页 <span class="bg-muted text-muted-foreground text-[10px] rounded-md px-1.5 py-0.5 tabular-nums">0</span>
+          </button>
+          <span class="ml-auto text-xs text-muted-foreground flex items-center gap-1 shrink-0">
+            <i data-lucide="zap" class="w-3 h-3 text-state-success"></i>
+            <span class="text-state-success hidden md:inline">Everything 秒级搜索</span>
+          </span>
+        </div>
+
+        <!-- Two-column body: results list + preview panel -->
+        <div class="flex-1 flex overflow-hidden min-h-0">
+
+          <!-- Left: search results (scrollable) -->
+          <div data-scroll-region="primary" class="flex-1 overflow-y-auto min-h-0 px-6 pb-6">
+
+            <!-- Section A: 文件 -->
+            <section class="mb-6">
+              <div class="flex items-center gap-2 mb-3">
+                <i data-lucide="file-text" class="w-4 h-4 text-primary"></i>
+                <span class="text-sm font-semibold text-foreground">文件</span>
+                <span class="text-xs text-muted-foreground tabular-nums">4 个结果</span>
+                <div class="flex-1 h-px bg-border ml-2"></div>
+              </div>
+
+              <!-- File result 1 (selected) -->
+              <div class="group relative bg-primary/5 border border-primary rounded-lg mb-2 overflow-hidden hover:bg-primary/[0.08] hover:shadow-md hover:shadow-primary/10 transition-all cursor-pointer">
+                <span class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary"></span>
+                <div class="flex items-center gap-4 px-4 py-3">
+                  <div class="w-10 h-10 rounded-lg bg-state-info/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="file-text" class="w-5 h-5 text-state-info"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm text-foreground font-medium truncate"><mark>项目方案</mark>.docx</p>
+                    <p class="text-xs text-muted-foreground truncate mt-0.5">桌面 / 工作文件</p>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="bg-muted text-muted-foreground text-[10px] px-2 py-0.5 rounded-md tabular-nums whitespace-nowrap">2.4 MB</span>
+                    <span class="text-[10px] text-muted-foreground whitespace-nowrap">2 分钟前</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- File result 2 -->
+              <div class="group relative bg-card border border-border rounded-lg mb-2 overflow-hidden hover:bg-muted/40 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all cursor-pointer">
+                <span class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                <div class="flex items-center gap-4 px-4 py-3">
+                  <div class="w-10 h-10 rounded-lg bg-state-info/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="file-text" class="w-5 h-5 text-state-info"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm text-foreground font-medium truncate"><mark>项目方案</mark>-v2.docx</p>
+                    <p class="text-xs text-muted-foreground truncate mt-0.5">桌面 / 工作文件</p>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="bg-muted text-muted-foreground text-[10px] px-2 py-0.5 rounded-md tabular-nums whitespace-nowrap">3.1 MB</span>
+                    <span class="text-[10px] text-muted-foreground whitespace-nowrap">1 小时前</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- File result 3 -->
+              <div class="group relative bg-card border border-border rounded-lg mb-2 overflow-hidden hover:bg-muted/40 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all cursor-pointer">
+                <span class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                <div class="flex items-center gap-4 px-4 py-3">
+                  <div class="w-10 h-10 rounded-lg bg-state-success/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="image" class="w-5 h-5 text-state-success"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm text-foreground font-medium truncate"><mark>方案</mark>配图.png</p>
+                    <p class="text-xs text-muted-foreground truncate mt-0.5">桌面 / 工作文件 / 素材</p>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="bg-muted text-muted-foreground text-[10px] px-2 py-0.5 rounded-md tabular-nums whitespace-nowrap">8.1 MB</span>
+                    <span class="text-[10px] text-muted-foreground whitespace-nowrap">昨天</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- File result 4 -->
+              <div class="group relative bg-card border border-border rounded-lg mb-2 overflow-hidden hover:bg-muted/40 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all cursor-pointer">
+                <span class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                <div class="flex items-center gap-4 px-4 py-3">
+                  <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="file-code" class="w-5 h-5 text-primary"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm text-foreground font-medium truncate">project-plan.md</p>
+                    <p class="text-xs text-muted-foreground truncate mt-0.5">桌面 / 项目</p>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <span class="bg-muted text-muted-foreground text-[10px] px-2 py-0.5 rounded-md tabular-nums whitespace-nowrap">12 KB</span>
+                    <span class="text-[10px] text-muted-foreground whitespace-nowrap">3 天前</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section B: 应用 -->
+            <section class="mb-6">
+              <div class="flex items-center gap-2 mb-3">
+                <i data-lucide="app-window" class="w-4 h-4 text-primary"></i>
+                <span class="text-sm font-semibold text-foreground">应用</span>
+                <span class="text-xs text-muted-foreground tabular-nums">2 个结果</span>
+                <div class="flex-1 h-px bg-border ml-2"></div>
+              </div>
+
+              <!-- App result 1 -->
+              <div class="group relative bg-card border border-border rounded-lg mb-2 overflow-hidden hover:bg-muted/40 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all cursor-pointer">
+                <span class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                <div class="flex items-center gap-4 px-4 py-3">
+                  <div class="w-10 h-10 rounded-lg bg-state-info/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="code" class="w-5 h-5 text-state-info"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm text-foreground font-medium truncate">VS Code</p>
+                    <p class="text-xs text-muted-foreground truncate mt-0.5">开发工具 · v1.85.0 · 已安装</p>
+                  </div>
+                  <button class="bg-primary/10 text-primary rounded-md px-2.5 py-1 text-xs font-medium hover:bg-primary/20 transition-colors shrink-0">打开</button>
+                </div>
+              </div>
+
+              <!-- App result 2 -->
+              <div class="group relative bg-card border border-border rounded-lg mb-2 overflow-hidden hover:bg-muted/40 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all cursor-pointer">
+                <span class="absolute left-0 top-0 bottom-0 w-[3px] bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                <div class="flex items-center gap-4 px-4 py-3">
+                  <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="figma" class="w-5 h-5 text-primary"></i>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm text-foreground font-medium truncate">Figma</p>
+                    <p class="text-xs text-muted-foreground truncate mt-0.5">设计工具 · v2024.1 · 已安装</p>
+                  </div>
+                  <button class="bg-primary/10 text-primary rounded-md px-2.5 py-1 text-xs font-medium hover:bg-primary/20 transition-colors shrink-0">打开</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section C: 快捷操作 -->
+            <section class="mb-6">
+              <div class="flex items-center gap-2 mb-3">
+                <i data-lucide="zap" class="w-4 h-4 text-primary"></i>
+                <span class="text-sm font-semibold text-foreground">快捷操作</span>
+                <div class="flex-1 h-px bg-border ml-2"></div>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2">
+                <!-- Action 1 -->
+                <div class="bg-card border border-border rounded-lg p-3 flex flex-col items-center gap-2 hover:bg-muted/40 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 hover:border-primary/30 transition-all cursor-pointer">
+                  <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <i data-lucide="layers" class="w-4 h-4 text-primary"></i>
+                  </div>
+                  <span class="text-xs text-foreground">整理桌面</span>
+                </div>
+
+                <!-- Action 2 -->
+                <div class="bg-card border border-border rounded-lg p-3 flex flex-col items-center gap-2 hover:bg-muted/40 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 hover:border-primary/30 transition-all cursor-pointer">
+                  <div class="w-9 h-9 rounded-lg bg-state-info/10 flex items-center justify-center">
+                    <i data-lucide="image" class="w-4 h-4 text-state-info"></i>
+                  </div>
+                  <span class="text-xs text-foreground">切换壁纸</span>
+                </div>
+
+                <!-- Action 3 -->
+                <div class="bg-card border border-border rounded-lg p-3 flex flex-col items-center gap-2 hover:bg-muted/40 hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5 hover:border-primary/30 transition-all cursor-pointer">
+                  <div class="w-9 h-9 rounded-lg bg-state-warning/10 flex items-center justify-center">
+                    <i data-lucide="settings" class="w-4 h-4 text-state-warning"></i>
+                  </div>
+                  <span class="text-xs text-foreground">打开设置</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section D: 最近搜索 -->
+            <section class="mb-6">
+              <div class="flex items-center gap-2 mb-3">
+                <i data-lucide="history" class="w-4 h-4 text-muted-foreground"></i>
+                <span class="text-sm font-semibold text-foreground">最近搜索</span>
+                <div class="flex-1 h-px bg-border ml-2"></div>
+                <button class="text-[10px] text-muted-foreground hover:text-state-error transition-colors shrink-0">清除</button>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button class="flex items-center gap-1.5 bg-muted/60 text-muted-foreground text-xs rounded-full px-3 py-1.5 border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors cursor-pointer">
+                  <i data-lucide="clock" class="w-3 h-3"></i> 设计稿
+                </button>
+                <button class="flex items-center gap-1.5 bg-muted/60 text-muted-foreground text-xs rounded-full px-3 py-1.5 border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors cursor-pointer">
+                  <i data-lucide="clock" class="w-3 h-3"></i> Excel
+                </button>
+                <button class="flex items-center gap-1.5 bg-muted/60 text-muted-foreground text-xs rounded-full px-3 py-1.5 border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors cursor-pointer">
+                  <i data-lucide="clock" class="w-3 h-3"></i> 备份
+                </button>
+                <button class="flex items-center gap-1.5 bg-muted/60 text-muted-foreground text-xs rounded-full px-3 py-1.5 border border-border hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors cursor-pointer">
+                  <i data-lucide="clock" class="w-3 h-3"></i> 配置文件
+                </button>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- Right: preview panel -->
+          <aside class="hidden lg:flex w-80 shrink-0 border-l border-border bg-card/40 flex-col overflow-hidden">
+            <div class="px-4 py-3 border-b border-border flex items-center justify-between shrink-0">
+              <span class="text-xs font-semibold text-foreground uppercase tracking-wider">预览</span>
+              <span class="text-[10px] text-muted-foreground bg-muted rounded-md px-2 py-0.5 whitespace-nowrap">Word 文档</span>
+            </div>
+
+            <div class="preview-scroll overflow-y-auto min-h-0 p-4 flex flex-col gap-4">
+
+              <!-- Preview thumbnail -->
+              <div class="aspect-[4/3] rounded-lg bg-muted/30 border border-border flex flex-col items-center justify-center gap-2">
+                <div class="w-16 h-16 rounded-xl bg-state-info/15 flex items-center justify-center">
+                  <i data-lucide="file-text" class="w-8 h-8 text-state-info"></i>
+                </div>
+                <span class="text-xs text-muted-foreground">文档预览</span>
+              </div>
+
+              <!-- File name -->
+              <div class="min-w-0">
+                <p class="text-sm font-semibold text-foreground truncate">项目方案.docx</p>
+                <p class="text-xs text-muted-foreground truncate mt-0.5">桌面 / 工作文件</p>
+              </div>
+
+              <!-- Info two-column -->
+              <dl class="flex flex-col gap-2.5 py-1">
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-xs text-muted-foreground shrink-0">类型</dt>
+                  <dd class="text-xs text-foreground font-medium truncate">Word 文档 (.docx)</dd>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-xs text-muted-foreground shrink-0">大小</dt>
+                  <dd class="text-xs text-foreground font-medium tabular-nums">2.4 MB</dd>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-xs text-muted-foreground shrink-0">修改时间</dt>
+                  <dd class="text-xs text-foreground font-medium whitespace-nowrap">2 分钟前</dd>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-xs text-muted-foreground shrink-0">创建时间</dt>
+                  <dd class="text-xs text-foreground font-medium tabular-nums whitespace-nowrap">2024-01-15</dd>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-xs text-muted-foreground shrink-0">位置</dt>
+                  <dd class="text-xs text-foreground font-medium truncate">C:\Users\...\桌面</dd>
+                </div>
+              </dl>
+
+              <div class="h-px bg-border"></div>
+
+              <!-- Quick actions -->
+              <div class="flex flex-col gap-2">
+                <button class="w-full flex items-center justify-center gap-1.5 bg-primary text-primary-foreground rounded-md py-2 text-sm font-medium hover:bg-primary/90 transition-colors">
+                  <i data-lucide="external-link" class="w-4 h-4"></i> 打开
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                  <button class="flex items-center justify-center gap-1.5 bg-card border border-border text-foreground rounded-md py-2 text-xs font-medium hover:border-primary/30 hover:bg-muted/50 transition-colors">
+                    <i data-lucide="folder-open" class="w-3.5 h-3.5"></i> 在文件夹显示
+                  </button>
+                  <button class="flex items-center justify-center gap-1.5 bg-card border border-border text-foreground rounded-md py-2 text-xs font-medium hover:border-primary/30 hover:bg-muted/50 transition-colors">
+                    <i data-lucide="terminal" class="w-3.5 h-3.5"></i> 管理员运行
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </aside>
+
+        </div>
+
+      </div>
+
+    </main>
+    <style>
+      [data-scroll-region]::-webkit-scrollbar,
+      .preview-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+      [data-scroll-region]::-webkit-scrollbar-track,
+      .preview-scroll::-webkit-scrollbar-track { background: transparent; }
+      [data-scroll-region]::-webkit-scrollbar-thumb,
+      .preview-scroll::-webkit-scrollbar-thumb { background: var(--dt-border); border-radius: 4px; }
+      [data-scroll-region]::-webkit-scrollbar-thumb:hover,
+      .preview-scroll::-webkit-scrollbar-thumb:hover { background: var(--dt-muted-foreground); }
+      .search-input { transition: box-shadow .2s ease, border-color .2s ease; }
+      .search-input:focus {
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--dt-primary) 16%, transparent),
+                    0 14px 30px -12px color-mix(in srgb, var(--dt-primary) 35%, transparent);
+      }
+      kbd { box-shadow: 0 1px 0 var(--dt-border); min-width: 18px; text-align: center; line-height: 1.4; }
+      @media (prefers-reduced-motion: reduce) {
+        .animate-ping { animation: none; }
+      }
+    </style>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

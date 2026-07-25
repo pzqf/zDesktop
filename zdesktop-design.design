@@ -1,0 +1,1230 @@
+{
+  "data": [
+    {
+      "id": "page-desktop-preview",
+      "title": "桌面效果图",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094414000,
+      "canvasData": {
+        "x": 620,
+        "y": 4901,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/desktop-preview.html",
+        "interactions": [
+          {
+            "domId": "shortcut-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-home",
+      "title": "首页概览",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094412000,
+      "canvasData": {
+        "x": 620,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/home.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-wallpaper-square",
+      "title": "壁纸广场",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094400000,
+      "canvasData": {
+        "x": 620,
+        "y": 377,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/wallpaper-square.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          },
+          {
+            "domId": "card-mountain-lake",
+            "targetPageId": "page-wallpaper-detail"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-wallpaper-detail",
+      "title": "壁纸详情",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094401000,
+      "canvasData": {
+        "x": 0,
+        "y": 377,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/wallpaper-detail.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          },
+          {
+            "domId": "back-to-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "cta-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-file-classify",
+      "title": "文件分类",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094408000,
+      "canvasData": {
+        "x": 620,
+        "y": 1885,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/file-classify.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-desktop-widgets",
+      "title": "桌面组件",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094409000,
+      "canvasData": {
+        "x": 620,
+        "y": 754,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/desktop-widgets.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-taskbar",
+      "title": "任务栏",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094410000,
+      "canvasData": {
+        "x": 620,
+        "y": 1131,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/taskbar.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-global-search",
+      "title": "全局搜索",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094411000,
+      "canvasData": {
+        "x": 620,
+        "y": 2639,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/global-search.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-disk-mapper",
+      "title": "磁盘映射",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094412000,
+      "canvasData": {
+        "x": 620,
+        "y": 2262,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/disk-mapper.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-settings",
+      "title": "设置中心",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1753094413000,
+      "canvasData": {
+        "x": 620,
+        "y": 4524,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/settings.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-clipboard-manager",
+      "title": "剪贴板历史",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784775600000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/clipboard-manager.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-quick-launch",
+      "title": "快速启动器",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784775601000,
+      "canvasData": {
+        "x": 620,
+        "y": 3016,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/quick-launch.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-window-manager",
+      "title": "窗口管理",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784775602000,
+      "canvasData": {
+        "x": 620,
+        "y": 3393,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/window-manager.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-automation-rules",
+      "title": "自动化规则",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784775603000,
+      "canvasData": {
+        "x": 620,
+        "y": 3770,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/automation-rules.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-control-center",
+      "title": "控制中心",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784775604000,
+      "canvasData": {
+        "x": 620,
+        "y": 4147,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/control-center.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-icon-manager",
+      "title": "图标管理",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784775605000,
+      "canvasData": {
+        "x": 620,
+        "y": 1508,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/icon-manager.html",
+        "interactions": [
+          {
+            "domId": "shortcut-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-home",
+            "targetPageId": "page-home"
+          },
+          {
+            "domId": "nav-wallpaper-square",
+            "targetPageId": "page-wallpaper-square"
+          },
+          {
+            "domId": "nav-desktop-widgets",
+            "targetPageId": "page-desktop-widgets"
+          },
+          {
+            "domId": "nav-taskbar",
+            "targetPageId": "page-taskbar"
+          },
+          {
+            "domId": "nav-icon-manager",
+            "targetPageId": "page-icon-manager"
+          },
+          {
+            "domId": "nav-file-classify",
+            "targetPageId": "page-file-classify"
+          },
+          {
+            "domId": "nav-disk-mapper",
+            "targetPageId": "page-disk-mapper"
+          },
+          {
+            "domId": "nav-global-search",
+            "targetPageId": "page-global-search"
+          },
+          {
+            "domId": "nav-quick-launch",
+            "targetPageId": "page-quick-launch"
+          },
+          {
+            "domId": "nav-window-manager",
+            "targetPageId": "page-window-manager"
+          },
+          {
+            "domId": "nav-automation-rules",
+            "targetPageId": "page-automation-rules"
+          },
+          {
+            "domId": "nav-control-center",
+            "targetPageId": "page-control-center"
+          },
+          {
+            "domId": "nav-settings",
+            "targetPageId": "page-settings"
+          },
+          {
+            "domId": "nav-desktop-preview",
+            "targetPageId": "page-desktop-preview"
+          }
+        ]
+      }
+    },
+    {
+      "id": "image-001",
+      "title": "山湖暮色",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1753094402000,
+      "canvasData": {
+        "x": 0,
+        "y": 5278
+      },
+      "devMetadata": {
+        "imageSrc": "assets/wallpaper-mountain-lake.jpg"
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "几何幻境",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1753094403000,
+      "canvasData": {
+        "x": 620,
+        "y": 5278
+      },
+      "devMetadata": {
+        "imageSrc": "assets/wallpaper-abstract-geo.jpg"
+      }
+    },
+    {
+      "id": "image-003",
+      "title": "城市星河",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1753094404000,
+      "canvasData": {
+        "x": 1240,
+        "y": 5278
+      },
+      "devMetadata": {
+        "imageSrc": "assets/wallpaper-city-night.jpg"
+      }
+    },
+    {
+      "id": "image-004",
+      "title": "粉彩梦境",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1753094405000,
+      "canvasData": {
+        "x": 1860,
+        "y": 5278
+      },
+      "devMetadata": {
+        "imageSrc": "assets/wallpaper-pastel-dream.jpg"
+      }
+    },
+    {
+      "id": "image-005",
+      "title": "海岸落日",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1753094406000,
+      "canvasData": {
+        "x": 2480,
+        "y": 5278
+      },
+      "devMetadata": {
+        "imageSrc": "assets/wallpaper-ocean-sunset.jpg"
+      }
+    },
+    {
+      "id": "image-006",
+      "title": "迷雾森林",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1753094407000,
+      "canvasData": {
+        "x": 3100,
+        "y": 5278
+      },
+      "devMetadata": {
+        "imageSrc": "assets/wallpaper-forest-mist.jpg"
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "desktop",
+    "projectName": "zDesktop",
+    "showEdge": false,
+    "visualEditorEnabled": false
+  }
+}

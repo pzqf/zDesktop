@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>窗口管理 - zDesktop</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.7.0/dist/umd/lucide.min.js"></script>
+  <style id="theme-vars">
+    :root {
+      --dt-background:#0f1117; --dt-foreground:#e8eaed; --dt-card:#1a1d27; --dt-card-foreground:#e8eaed;
+      --dt-popover:#1a1d27; --dt-popover-foreground:#e8eaed; --dt-primary:#6c5ce7; --dt-primary-foreground:#ffffff;
+      --dt-muted:#2a2d3a; --dt-muted-foreground:#9ca3af; --dt-border:#2e3142; --dt-input:#2a2d3a; --dt-ring:#6c5ce7;
+      --dt-state-success:#10b981; --dt-state-warning:#f59e0b; --dt-state-error:#ef4444; --dt-state-info:#3b82f6;
+      --dt-radius-sm:6px; --dt-radius-md:10px; --dt-radius-lg:16px;
+    }
+  </style>
+  <style type="text/tailwindcss">
+    @theme inline {
+      --color-background: var(--dt-background);
+      --color-foreground: var(--dt-foreground);
+      --color-card: var(--dt-card);
+      --color-card-foreground: var(--dt-card-foreground);
+      --color-popover: var(--dt-popover);
+      --color-popover-foreground: var(--dt-popover-foreground);
+      --color-primary: var(--dt-primary);
+      --color-primary-foreground: var(--dt-primary-foreground);
+      --color-muted: var(--dt-muted);
+      --color-muted-foreground: var(--dt-muted-foreground);
+      --color-border: var(--dt-border);
+      --color-input: var(--dt-input);
+      --color-ring: var(--dt-ring);
+      --color-state-success: var(--dt-state-success);
+      --color-state-warning: var(--dt-state-warning);
+      --color-state-error: var(--dt-state-error);
+      --color-state-info: var(--dt-state-info);
+      --radius-sm: var(--dt-radius-sm);
+      --radius-md: var(--dt-radius-md);
+      --radius-lg: var(--dt-radius-lg);
+      --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    }
+    @layer base {
+      body { background-color: var(--dt-background); color: var(--dt-foreground); }
+    }
+  </style>
+  <style id="semantic-token-fallback">
+    .bg-background{background-color:var(--dt-background)}
+    .bg-card{background-color:var(--dt-card)}
+    .bg-popover{background-color:var(--dt-popover)}
+    .bg-primary{background-color:var(--dt-primary)}
+    .bg-muted{background-color:var(--dt-muted)}
+    .bg-input{background-color:var(--dt-input)}
+    .bg-ring{background-color:var(--dt-ring)}
+    .bg-state-success{background-color:var(--dt-state-success)}
+    .bg-state-warning{background-color:var(--dt-state-warning)}
+    .bg-state-error{background-color:var(--dt-state-error)}
+    .bg-state-info{background-color:var(--dt-state-info)}
+    .text-foreground{color:var(--dt-foreground)}
+    .text-card-foreground{color:var(--dt-card-foreground)}
+    .text-popover-foreground{color:var(--dt-popover-foreground)}
+    .text-primary{color:var(--dt-primary)}
+    .text-primary-foreground{color:var(--dt-primary-foreground)}
+    .text-muted{color:var(--dt-muted)}
+    .text-muted-foreground{color:var(--dt-muted-foreground)}
+    .text-state-success{color:var(--dt-state-success)}
+    .text-state-warning{color:var(--dt-state-warning)}
+    .text-state-error{color:var(--dt-state-error)}
+    .text-state-info{color:var(--dt-state-info)}
+    .border-border{border-color:var(--dt-border)}
+    .border-primary{border-color:var(--dt-primary)}
+    .border-input{border-color:var(--dt-input)}
+    .border-muted{border-color:var(--dt-muted)}
+    .ring-primary{--tw-ring-color:var(--dt-primary)}
+    .ring-state-info{--tw-ring-color:var(--dt-state-info)}
+    .border-state-success{border-color:var(--dt-state-success)}
+    .border-state-warning{border-color:var(--dt-state-warning)}
+    .border-state-error{border-color:var(--dt-state-error)}
+    .border-state-info{border-color:var(--dt-state-info)}
+  </style>
+  <style id="data-icon">
+    [data-icon]{display:inline-block;background-color:currentColor;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+  </style>
+</head>
+<body class="h-screen overflow-hidden min-h-0 font-sans antialiased">
+  <main data-viewport-mode="app-shell" class="h-screen overflow-hidden min-h-0 flex">
+    <aside class="w-56 shrink-0 bg-muted border-r border-border flex flex-col">
+      <!-- Logo (clickable -> home) -->
+      <a href="#" data-dom-id="shortcut-home" class="flex items-center gap-2 px-4 py-5 cursor-pointer hover:opacity-80 transition-opacity">
+        <i data-lucide="monitor" class="w-5 h-5 text-primary"></i>
+        <span class="text-lg font-semibold text-foreground">zDesktop</span>
+      </a>
+
+      <!-- Nav sections -->
+      <nav class="flex flex-col gap-y-1 px-3 mt-1 flex-1 overflow-y-auto no-scrollbar">
+        <a href="#" data-dom-id="nav-home" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>首页</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">美化</p>
+        <a href="#" data-dom-id="nav-wallpaper-square" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          <span>壁纸广场</span>
+        </a>
+        <a href="#" data-dom-id="nav-desktop-widgets" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="widgets" class="w-4 h-4"></i>
+          <span>桌面组件</span>
+        </a>
+        <a href="#" data-dom-id="nav-taskbar" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="panel-bottom" class="w-4 h-4"></i>
+          <span>任务栏</span>
+        </a>
+        <a href="#" data-dom-id="nav-icon-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="palette" class="w-4 h-4"></i>
+          <span>图标管理</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">管理</p>
+        <a href="#" data-dom-id="nav-file-classify" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="folder-tree" class="w-4 h-4"></i>
+          <span>文件分类</span>
+        </a>
+        <a href="#" data-dom-id="nav-disk-mapper" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="hard-drive" class="w-4 h-4"></i>
+          <span>磁盘映射</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">效率</p>
+        <a href="#" data-dom-id="nav-global-search" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="search" class="w-4 h-4"></i>
+          <span>全局搜索</span>
+        </a>
+        <a href="#" data-dom-id="nav-quick-launch" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="rocket" class="w-4 h-4"></i>
+          <span>快速启动器</span>
+        </a>
+        <a href="#" data-dom-id="nav-window-manager" class="flex items-center gap-3 px-3 py-2.5 rounded-md bg-primary/10 text-primary text-sm font-medium">
+          <i data-lucide="app-window" class="w-4 h-4"></i>
+          <span>窗口管理</span>
+        </a>
+        <a href="#" data-dom-id="nav-automation-rules" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="zap" class="w-4 h-4"></i>
+          <span>自动化规则</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">系统</p>
+        <a href="#" data-dom-id="nav-control-center" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="settings-2" class="w-4 h-4"></i>
+          <span>控制中心</span>
+        </a>
+        <a href="#" data-dom-id="nav-settings" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span>设置</span>
+        </a>
+        <p class="text-[10px] text-muted-foreground uppercase tracking-wider px-3 pt-3 pb-1">预览</p>
+        <a href="#" data-dom-id="nav-desktop-preview" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-muted-foreground text-sm hover:bg-muted hover:text-foreground transition-colors">
+          <i data-lucide="monitor" class="w-4 h-4"></i>
+          <span>桌面效果图</span>
+        </a>
+      </nav>
+
+      <!-- Bottom: current wallpaper -->
+      <div class="mt-auto border-t border-border px-4 py-4">
+        <p class="text-xs text-muted-foreground mb-2">当前壁纸</p>
+        <div class="flex items-center gap-3">
+          <img src="../assets/wallpaper-mountain-lake.jpg" alt="当前壁纸" class="w-12 h-8 object-cover rounded-md border border-border">
+          <div class="min-w-0">
+            <p class="text-sm text-foreground truncate">山湖暮色</p>
+            <p class="text-xs text-muted-foreground">1920 x 1080</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="flex-1 overflow-y-auto min-w-0">
+      <div class="p-6 lg:p-8 space-y-6 max-w-[1280px] mx-auto">
+        <header class="flex items-center justify-between gap-4 flex-wrap">
+          <div class="flex items-center gap-3 min-w-0">
+            <h1 class="text-2xl font-semibold text-foreground" style="text-wrap:balance;word-break:keep-all;overflow-wrap:break-word">窗口管理</h1>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-state-success/15 text-state-success text-xs font-medium whitespace-nowrap">
+              <span class="w-1.5 h-1.5 rounded-full bg-state-success"></span>已启用
+            </span>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-muted-foreground">
+            <i data-lucide="app-window" class="w-4 h-4"></i>
+            <span>当前 <span class="text-foreground font-semibold">8</span> 个窗口</span>
+          </div>
+        </header>
+
+        <section class="bg-card border border-border rounded-lg p-5 shadow-sm shadow-black/20">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <div class="min-w-0">
+              <h2 class="text-base font-semibold text-foreground">预设布局</h2>
+              <p class="text-sm text-muted-foreground truncate">一键排列窗口</p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
+              <i data-lucide="layout-template" class="w-4 h-4"></i>6 个预设
+            </span>
+          </div>
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            <button class="text-left bg-primary/5 border border-primary ring-2 ring-primary/30 rounded-lg p-4 cursor-pointer transition-all shadow-sm shadow-black/20">
+              <div class="flex items-center justify-between mb-3">
+                <i data-lucide="columns-2" class="w-4 h-4 text-primary"></i>
+                <i data-lucide="check-circle-2" class="w-4 h-4 text-primary"></i>
+              </div>
+              <div class="flex gap-1 h-9 mb-2.5 bg-muted/40 rounded p-1">
+                <div class="flex-1 bg-primary/30 rounded-sm"></div>
+                <div class="flex-1 bg-muted-foreground/30 rounded-sm"></div>
+              </div>
+              <p class="text-sm font-medium text-foreground truncate">左右分屏</p>
+            </button>
+            <button class="text-left bg-muted/30 border border-border rounded-lg p-4 cursor-pointer transition-all shadow-sm shadow-black/20 hover:border-primary/30">
+              <div class="flex items-center justify-between mb-3">
+                <i data-lucide="columns-3" class="w-4 h-4 text-muted-foreground"></i>
+              </div>
+              <div class="flex gap-1 h-9 mb-2.5 bg-muted/40 rounded p-1">
+                <div class="flex-1 bg-muted-foreground/30 rounded-sm"></div>
+                <div class="flex-1 bg-muted-foreground/30 rounded-sm"></div>
+                <div class="flex-1 bg-muted-foreground/30 rounded-sm"></div>
+              </div>
+              <p class="text-sm font-medium text-foreground truncate">三分屏</p>
+            </button>
+            <button class="text-left bg-muted/30 border border-border rounded-lg p-4 cursor-pointer transition-all shadow-sm shadow-black/20 hover:border-primary/30">
+              <div class="flex items-center justify-between mb-3">
+                <i data-lucide="grid-2x2" class="w-4 h-4 text-muted-foreground"></i>
+              </div>
+              <div class="grid grid-cols-2 gap-1 h-9 mb-2.5 bg-muted/40 rounded p-1">
+                <div class="bg-muted-foreground/30 rounded-sm"></div>
+                <div class="bg-muted-foreground/30 rounded-sm"></div>
+                <div class="bg-muted-foreground/30 rounded-sm"></div>
+                <div class="bg-muted-foreground/30 rounded-sm"></div>
+              </div>
+              <p class="text-sm font-medium text-foreground truncate">四宫格</p>
+            </button>
+            <button class="text-left bg-muted/30 border border-border rounded-lg p-4 cursor-pointer transition-all shadow-sm shadow-black/20 hover:border-primary/30">
+              <div class="flex items-center justify-between mb-3">
+                <i data-lucide="panels-top-left" class="w-4 h-4 text-muted-foreground"></i>
+              </div>
+              <div class="flex gap-1 h-9 mb-2.5 bg-muted/40 rounded p-1">
+                <div class="flex-[2] bg-muted-foreground/30 rounded-sm"></div>
+                <div class="flex-1 flex flex-col gap-1">
+                  <div class="flex-1 bg-muted-foreground/30 rounded-sm"></div>
+                  <div class="flex-1 bg-muted-foreground/30 rounded-sm"></div>
+                </div>
+              </div>
+              <p class="text-sm font-medium text-foreground truncate">主从布局</p>
+            </button>
+            <button class="text-left bg-muted/30 border border-border rounded-lg p-4 cursor-pointer transition-all shadow-sm shadow-black/20 hover:border-primary/30">
+              <div class="flex items-center justify-between mb-3">
+                <i data-lucide="layers" class="w-4 h-4 text-muted-foreground"></i>
+              </div>
+              <div class="relative h-9 mb-2.5 bg-muted/40 rounded p-1">
+                <div class="absolute left-1.5 top-1.5 w-[60%] h-[60%] bg-muted-foreground/30 rounded-sm"></div>
+                <div class="absolute left-3 top-2.5 w-[60%] h-[60%] bg-primary/25 rounded-sm"></div>
+                <div class="absolute left-5 top-3.5 w-[55%] h-[55%] bg-muted-foreground/40 rounded-sm"></div>
+              </div>
+              <p class="text-sm font-medium text-foreground truncate">层叠</p>
+            </button>
+            <button class="text-left bg-muted/30 border border-border rounded-lg p-4 cursor-pointer transition-all shadow-sm shadow-black/20 hover:border-primary/30">
+              <div class="flex items-center justify-between mb-3">
+                <i data-lucide="pencil-ruler" class="w-4 h-4 text-muted-foreground"></i>
+              </div>
+              <div class="h-9 mb-2.5 bg-muted/40 rounded p-1 flex items-center justify-center border border-dashed border-muted-foreground/30">
+                <i data-lucide="plus" class="w-4 h-4 text-muted-foreground/60"></i>
+              </div>
+              <p class="text-sm font-medium text-foreground truncate">自定义</p>
+            </button>
+          </div>
+        </section>
+
+        <section class="bg-card border border-border rounded-lg p-5 shadow-sm shadow-black/20">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <div class="min-w-0">
+              <h2 class="text-base font-semibold text-foreground">活动窗口</h2>
+              <p class="text-sm text-muted-foreground truncate">实时管理当前打开的窗口</p>
+            </div>
+            <button class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>刷新
+            </button>
+          </div>
+          <div class="space-y-2.5">
+            <div class="bg-muted/30 border border-border rounded-lg p-3 hover:border-primary/30 transition-all flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-state-info/15 text-state-info flex items-center justify-center shrink-0">
+                <i data-lucide="code" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-foreground truncate">VS Code</p>
+                <p class="text-xs text-muted-foreground truncate">项目源码 - zDesktop</p>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <button class="inline-flex items-center gap-1 text-xs text-primary whitespace-nowrap" title="置顶">
+                  <i data-lucide="pin" class="w-3.5 h-3.5"></i>置顶
+                </button>
+                <div class="flex items-center gap-1.5">
+                  <div class="relative w-20 h-1 bg-muted rounded-full">
+                    <div class="absolute inset-y-0 left-0 bg-primary rounded-full w-4/5"></div>
+                    <div class="absolute top-1/2 left-[80%] -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-foreground rounded-full shadow-sm shadow-black/30"></div>
+                  </div>
+                  <span class="text-xs text-muted-foreground w-7 text-right">80%</span>
+                </div>
+                <button class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap" title="最小化到托盘">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>托盘
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-muted/30 border border-border rounded-lg p-3 hover:border-primary/30 transition-all flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-state-info/15 text-state-info flex items-center justify-center shrink-0">
+                <i data-lucide="globe" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-foreground truncate">Chrome</p>
+                <p class="text-xs text-muted-foreground truncate">GitHub - zDesktop</p>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <button class="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap" title="置顶">
+                  <i data-lucide="pin" class="w-3.5 h-3.5"></i>置顶
+                </button>
+                <div class="flex items-center gap-1.5">
+                  <div class="relative w-20 h-1 bg-muted rounded-full">
+                    <div class="absolute inset-y-0 left-0 bg-primary rounded-full w-full"></div>
+                    <div class="absolute top-1/2 left-full -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-foreground rounded-full shadow-sm shadow-black/30"></div>
+                  </div>
+                  <span class="text-xs text-muted-foreground w-7 text-right">100%</span>
+                </div>
+                <button class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap" title="最小化到托盘">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>托盘
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-muted/30 border border-border rounded-lg p-3 hover:border-primary/30 transition-all flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                <i data-lucide="figma" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-foreground truncate">Figma</p>
+                <p class="text-xs text-muted-foreground truncate">设计稿 v2.0</p>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <button class="inline-flex items-center gap-1 text-xs text-primary whitespace-nowrap" title="置顶">
+                  <i data-lucide="pin" class="w-3.5 h-3.5"></i>置顶
+                </button>
+                <div class="flex items-center gap-1.5">
+                  <div class="relative w-20 h-1 bg-muted rounded-full">
+                    <div class="absolute inset-y-0 left-0 bg-primary rounded-full w-9/10"></div>
+                    <div class="absolute top-1/2 left-[90%] -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-foreground rounded-full shadow-sm shadow-black/30"></div>
+                  </div>
+                  <span class="text-xs text-muted-foreground w-7 text-right">90%</span>
+                </div>
+                <button class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap" title="最小化到托盘">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>托盘
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-muted/30 border border-border rounded-lg p-3 hover:border-primary/30 transition-all flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-state-info/15 text-state-info flex items-center justify-center shrink-0">
+                <i data-lucide="message-square" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-foreground truncate">钉钉</p>
+                <p class="text-xs text-muted-foreground truncate">工作群</p>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <button class="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap" title="置顶">
+                  <i data-lucide="pin" class="w-3.5 h-3.5"></i>置顶
+                </button>
+                <div class="flex items-center gap-1.5">
+                  <div class="relative w-20 h-1 bg-muted rounded-full">
+                    <div class="absolute inset-y-0 left-0 bg-primary rounded-full w-full"></div>
+                    <div class="absolute top-1/2 left-full -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-foreground rounded-full shadow-sm shadow-black/30"></div>
+                  </div>
+                  <span class="text-xs text-muted-foreground w-7 text-right">100%</span>
+                </div>
+                <button class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap" title="最小化到托盘">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>托盘
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-muted/30 border border-border rounded-lg p-3 hover:border-primary/30 transition-all flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-state-success/15 text-state-success flex items-center justify-center shrink-0">
+                <i data-lucide="calculator" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-foreground truncate">计算器</p>
+                <p class="text-xs text-muted-foreground truncate">标准</p>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <button class="inline-flex items-center gap-1 text-xs text-primary whitespace-nowrap" title="置顶">
+                  <i data-lucide="pin" class="w-3.5 h-3.5"></i>置顶
+                </button>
+                <div class="flex items-center gap-1.5">
+                  <div class="relative w-20 h-1 bg-muted rounded-full">
+                    <div class="absolute inset-y-0 left-0 bg-primary rounded-full w-7/10"></div>
+                    <div class="absolute top-1/2 left-[70%] -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-foreground rounded-full shadow-sm shadow-black/30"></div>
+                  </div>
+                  <span class="text-xs text-muted-foreground w-7 text-right">70%</span>
+                </div>
+                <button class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap" title="最小化到托盘">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>托盘
+                </button>
+              </div>
+            </div>
+
+            <div class="bg-muted/30 border border-border rounded-lg p-3 hover:border-primary/30 transition-all flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-state-warning/15 text-state-warning flex items-center justify-center shrink-0">
+                <i data-lucide="folder" class="w-4 h-4"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-foreground truncate">文件管理器</p>
+                <p class="text-xs text-muted-foreground truncate">下载</p>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <button class="inline-flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap" title="置顶">
+                  <i data-lucide="pin" class="w-3.5 h-3.5"></i>置顶
+                </button>
+                <div class="flex items-center gap-1.5">
+                  <div class="relative w-20 h-1 bg-muted rounded-full">
+                    <div class="absolute inset-y-0 left-0 bg-primary rounded-full w-full"></div>
+                    <div class="absolute top-1/2 left-full -translate-x-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-foreground rounded-full shadow-sm shadow-black/30"></div>
+                  </div>
+                  <span class="text-xs text-muted-foreground w-7 text-right">100%</span>
+                </div>
+                <button class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors whitespace-nowrap" title="最小化到托盘">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>托盘
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-card border border-border rounded-lg p-5 shadow-sm shadow-black/20">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <div class="min-w-0">
+              <h2 class="text-base font-semibold text-foreground">窗口规则</h2>
+              <p class="text-sm text-muted-foreground truncate">自动化窗口行为规则</p>
+            </div>
+            <button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm text-primary hover:bg-primary/10 transition-colors whitespace-nowrap">
+              <i data-lucide="plus" class="w-4 h-4"></i>添加规则
+            </button>
+          </div>
+          <div class="space-y-2.5">
+            <div class="bg-muted/30 rounded-lg p-3 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <i data-lucide="app-window" class="w-4 h-4"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm text-foreground truncate">当打开 VS Code 时 → 自动左半屏</p>
+                  <p class="text-xs text-muted-foreground truncate">触发：应用启动 · 动作：吸附左侧</p>
+                </div>
+              </div>
+              <button class="relative w-9 h-5 rounded-full bg-primary transition-colors shrink-0" role="switch" aria-checked="true">
+                <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform translate-x-4"></span>
+              </button>
+            </div>
+            <div class="bg-muted/30 rounded-lg p-3 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <i data-lucide="pin" class="w-4 h-4"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm text-foreground truncate">当打开 Figma 时 → 自动置顶</p>
+                  <p class="text-xs text-muted-foreground truncate">触发：应用启动 · 动作：窗口置顶</p>
+                </div>
+              </div>
+              <button class="relative w-9 h-5 rounded-full bg-primary transition-colors shrink-0" role="switch" aria-checked="true">
+                <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform translate-x-4"></span>
+              </button>
+            </div>
+            <div class="bg-muted/30 rounded-lg p-3 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-8 h-8 rounded-lg bg-state-warning/10 text-state-warning flex items-center justify-center shrink-0">
+                  <i data-lucide="bell-ring" class="w-4 h-4"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm text-foreground truncate">当窗口超过 10 个时 → 提示整理</p>
+                  <p class="text-xs text-muted-foreground truncate">触发：数量阈值 · 动作：通知提醒</p>
+                </div>
+              </div>
+              <button class="relative w-9 h-5 rounded-full bg-muted transition-colors shrink-0" role="switch" aria-checked="false">
+                <span class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform"></span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section class="bg-card border border-border rounded-lg p-5 shadow-sm shadow-black/20">
+          <div class="flex items-center justify-between gap-3 mb-4">
+            <div class="min-w-0">
+              <h2 class="text-base font-semibold text-foreground">Snap 预览区</h2>
+              <p class="text-sm text-muted-foreground truncate">拖动窗口到屏幕边缘自动吸附</p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
+              <i data-lucide="move" class="w-4 h-4"></i>5 个吸附区
+            </span>
+          </div>
+          <div class="relative w-full h-64 bg-muted rounded-lg overflow-hidden border border-border">
+            <button class="absolute inset-y-3 left-3 w-[calc(50%-0.75rem)] bg-primary/5 border border-dashed border-primary/40 rounded-md hover:bg-primary/10 transition-colors group" title="左半屏">
+              <span class="absolute top-2 left-2 w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] font-semibold flex items-center justify-center">1</span>
+              <span class="absolute bottom-2 left-2 text-[10px] text-muted-foreground">左半屏</span>
+            </button>
+            <button class="absolute inset-y-3 right-3 w-[calc(50%-0.75rem)] bg-primary/5 border border-dashed border-primary/40 rounded-md hover:bg-primary/10 transition-colors group" title="右半屏">
+              <span class="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] font-semibold flex items-center justify-center">2</span>
+              <span class="absolute bottom-2 right-2 text-[10px] text-muted-foreground">右半屏</span>
+            </button>
+            <button class="absolute inset-x-3 top-3 h-[calc(50%-0.75rem)] bg-state-info/5 border border-dashed border-state-info/40 rounded-md hover:bg-state-info/10 transition-colors" title="上半屏">
+              <span class="absolute top-2 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-state-info/20 text-state-info text-[10px] font-semibold flex items-center justify-center">3</span>
+              <span class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground">上半屏</span>
+            </button>
+            <button class="absolute inset-x-3 bottom-3 h-[calc(50%-0.75rem)] bg-state-success/5 border border-dashed border-state-success/40 rounded-md hover:bg-state-success/10 transition-colors" title="下半屏">
+              <span class="absolute top-2 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-state-success/20 text-state-success text-[10px] font-semibold flex items-center justify-center">4</span>
+              <span class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px] text-muted-foreground">下半屏</span>
+            </button>
+            <button class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-20 bg-primary/15 border border-dashed border-primary/60 rounded-md hover:bg-primary/20 transition-colors flex flex-col items-center justify-center gap-1" title="居中">
+              <span class="w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold flex items-center justify-center">5</span>
+              <span class="text-[10px] text-foreground">居中</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+            <i data-lucide="info" class="w-3.5 h-3.5"></i>
+            <span>拖动窗口到屏幕边缘自动吸附，松开鼠标即可应用对应布局</span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
