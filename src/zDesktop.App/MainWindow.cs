@@ -7,13 +7,9 @@ using zDesktop.App.Pages;
 using zDesktop.Core.Widgets;
 using zDesktop.Shell.Automation;
 using zDesktop.Shell.Classifier;
-using zDesktop.Shell.ControlCenter;
-using zDesktop.Shell.DiskMapper;
-using zDesktop.Shell.IconManager;
 using zDesktop.Shell.Launcher;
 using zDesktop.Shell.Search;
 using zDesktop.Shell.Styles;
-using zDesktop.Shell.WindowManager;
 using zDesktop.Shell.Widgets;
 
 // 项目同时启用 WPF + WinForms + System.Drawing，FontFamily 在 System.Drawing 与 System.Windows.Media 间歧义，显式别名优先 WPF
@@ -41,12 +37,8 @@ public sealed class MainWindow : Window
     // ===== 服务依赖（由 App 注入）=====
     private readonly AppIndex _appIndex;
     private readonly FileIndexService _fileIndex;
-    private readonly WindowManagerService _windowManager;
-    private readonly ControlCenterService _controlCenter;
     private readonly FileClassifierService _classifier;
-    private readonly DiskMapperService _diskMapper;
     private readonly AutomationService _automation;
-    private readonly IconManagerService _iconManager;
     private readonly WidgetRegistry _registry;
     private readonly WidgetHost _host;
     private readonly Func<string, WidgetBase> _createWidget;
@@ -72,12 +64,6 @@ public sealed class MainWindow : Window
         new("Segoe UI Emoji, Segoe UI Symbol, Microsoft YaHei UI, Microsoft YaHei");
 
     /// <summary>
-    /// 专注模式切换事件 — 从 ControlCenterPage 透传，参数为切换后的开启状态。
-    /// 由 App 订阅，用于隐藏/显示所有桌面组件。
-    /// </summary>
-    public event Action<bool>? FocusModeToggled;
-
-    /// <summary>
     /// 组件布局变更事件 — 从 WidgetPanelPage 透传。
     /// 由 App 订阅，用于保存桌面组件布局。
     /// </summary>
@@ -88,36 +74,24 @@ public sealed class MainWindow : Window
     /// </summary>
     /// <param name="appIndex">应用索引服务</param>
     /// <param name="fileIndex">文件索引服务</param>
-    /// <param name="windowManager">窗口管理服务</param>
-    /// <param name="controlCenter">控制中心服务</param>
     /// <param name="classifier">文件分类服务</param>
-    /// <param name="diskMapper">磁盘映射服务</param>
     /// <param name="automation">自动化服务</param>
-    /// <param name="iconManager">图标管理服务</param>
     /// <param name="registry">组件注册表</param>
     /// <param name="host">组件宿主</param>
     /// <param name="createWidget">组件工厂（按 Id 创建组件实例）</param>
     public MainWindow(
         AppIndex appIndex,
         FileIndexService fileIndex,
-        WindowManagerService windowManager,
-        ControlCenterService controlCenter,
         FileClassifierService classifier,
-        DiskMapperService diskMapper,
         AutomationService automation,
-        IconManagerService iconManager,
         WidgetRegistry registry,
         WidgetHost host,
         Func<string, WidgetBase> createWidget)
     {
         _appIndex = appIndex;
         _fileIndex = fileIndex;
-        _windowManager = windowManager;
-        _controlCenter = controlCenter;
         _classifier = classifier;
-        _diskMapper = diskMapper;
         _automation = automation;
-        _iconManager = iconManager;
         _registry = registry;
         _host = host;
         _createWidget = createWidget;
@@ -181,7 +155,7 @@ public sealed class MainWindow : Window
     /// <summary>
     /// 编程式切换页面 — 供托盘菜单和热键调用
     /// </summary>
-    /// <param name="navId">目标导航标识（如 "global-search" / "control-center"）</param>
+    /// <param name="navId">目标导航标识（如 "global-search" / "automation-rules"）</param>
     public void Navigate(string navId)
     {
         if (string.IsNullOrEmpty(navId)) return;
@@ -599,11 +573,7 @@ public sealed class MainWindow : Window
                 _pageCache[navId] = page;
 
                 // 订阅页面事件
-                if (page is ControlCenterPage cc)
-                {
-                    cc.FocusModeToggled += on => FocusModeToggled?.Invoke(on);
-                }
-                else if (page is WidgetPanelPage wp)
+                if (page is WidgetPanelPage wp)
                 {
                     wp.WidgetAdded += () => WidgetLayoutChanged?.Invoke();
                     wp.WidgetRemoved += () => WidgetLayoutChanged?.Invoke();
@@ -629,19 +599,11 @@ public sealed class MainWindow : Window
         return navId switch
         {
             "home" => new HomePage(),
-            "wallpaper-square" => new WallpaperSquarePage(),
             "desktop-widgets" => new WidgetPanelPage(_registry, _host, _createWidget),
-            "taskbar" => new TaskbarPage(),
-            "icon-manager" => new IconManagerPage(_iconManager),
             "file-classify" => new FileClassifyPage(_classifier),
-            "disk-mapper" => new DiskMapperPage(_diskMapper),
-            "global-search" => new GlobalSearchPage(_appIndex, _fileIndex),
-            "quick-launch" => new QuickLaunchPage(),
-            "window-manager" => new WindowManagerPage(_windowManager),
             "automation-rules" => new AutomationPage(_automation),
-            "control-center" => new ControlCenterPage(_controlCenter),
+            "global-search" => new GlobalSearchPage(_appIndex, _fileIndex),
             "settings" => new SettingsPage(),
-            "desktop-preview" => new DesktopPreviewPage(),
             _ => null,
         };
     }
@@ -690,27 +652,18 @@ public sealed class MainWindow : Window
         public TextBlock Label { get; init; } = null!;
     }
 
-    /// <summary>导航项列表（按设计稿分组：首页 / 美化 / 管理 / 效率 / 系统 / 预览）</summary>
+    /// <summary>
+    /// 导航项列表（设计案 v3.1 §3.2：设置窗口从产品主体降为配置面板，16 页砍到 6 页）
+    ///
+    /// 「分区」页随 M3 分区功能落地补入。
+    /// </summary>
     private static readonly NavItem[] NavItems =
     {
-        new("home", "首页", "🏠", null),
-        // 美化
-        new("wallpaper-square", "壁纸广场", "🖼", "美化"),
-        new("desktop-widgets", "桌面组件", "🧩", "美化"),
-        new("taskbar", "任务栏", "📊", "美化"),
-        new("icon-manager", "图标管理", "🎨", "美化"),
-        // 管理
-        new("file-classify", "文件分类", "🗂", "管理"),
-        new("disk-mapper", "磁盘映射", "💾", "管理"),
-        // 效率
-        new("global-search", "全局搜索", "🔍", "效率"),
-        new("quick-launch", "快速启动器", "🚀", "效率"),
-        new("window-manager", "窗口管理", "🪟", "效率"),
-        new("automation-rules", "自动化规则", "⚡", "效率"),
-        // 系统
-        new("control-center", "控制中心", "⚙", "系统"),
-        new("settings", "设置", "🔧", "系统"),
-        // 预览
-        new("desktop-preview", "桌面效果图", "🖥", "预览"),
+        new("home", "概览", "🏠", null),
+        new("desktop-widgets", "组件", "🧩", null),
+        new("file-classify", "分类", "🗂", null),
+        new("automation-rules", "规则", "⚡", null),
+        new("global-search", "搜索", "🔍", null),
+        new("settings", "设置", "🔧", null),
     };
 }

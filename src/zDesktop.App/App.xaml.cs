@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using zDesktop.App.Panels;
 using zDesktop.App.Tray;
@@ -7,18 +7,14 @@ using zDesktop.Core.Layout;
 using zDesktop.Core.Widgets;
 using zDesktop.Shell.Automation;
 using zDesktop.Shell.Classifier;
-using zDesktop.Shell.ControlCenter;
 using zDesktop.Shell.Desktop;
 using zDesktop.Shell.DesktopIcons;
-using zDesktop.Shell.DiskMapper;
 using zDesktop.Shell.Hotkeys;
-using zDesktop.Shell.IconManager;
 using zDesktop.Shell.Interop;
 using zDesktop.Shell.Launcher;
 using zDesktop.Shell.Layout;
 using zDesktop.Shell.Search;
 using zDesktop.Shell.Widgets;
-using zDesktop.Shell.WindowManager;
 using zDesktop.Widgets.Calendar;
 using zDesktop.Widgets.Clock;
 using zDesktop.Widgets.Launcher;
@@ -82,12 +78,8 @@ public partial class App : Application
     // ===== 效率工具服务（单例长驻）=====
     private readonly AppIndex _appIndex = new();
     private readonly FileIndexService _fileIndex = new();
-    private readonly WindowManagerService _windowManager = new();
-    private readonly ControlCenterService _controlCenter = new();
     private readonly FileClassifierService _classifier = new();
-    private readonly DiskMapperService _diskMapper = new();
     private readonly AutomationService _automation = new();
-    private readonly IconManagerService _iconManager = new();
     private GlobalHotkeyService? _hotkeys;
 
     /// <summary>统一主窗口（懒创建，关闭时仅隐藏）</summary>
@@ -139,14 +131,11 @@ public partial class App : Application
         _tray.ToggleStartup += OnToggleStartup;
         _tray.ShowWidgetPanel += OnShowWidgetPanel;
         _tray.ToggleIconMode += OnToggleIconMode;
-        // 功能中心入口 — 统一通过主窗口导航
+        // 功能入口 — 统一通过主窗口导航
         _tray.ShowGlobalSearch += () => OnShowMainWindow("global-search");
-        _tray.ShowWindowManager += () => OnShowMainWindow("window-manager");
-        _tray.ShowControlCenter += () => OnShowMainWindow("control-center");
         _tray.ShowFileClassify += () => OnShowMainWindow("file-classify");
-        _tray.ShowDiskMapper += () => OnShowMainWindow("disk-mapper");
         _tray.ShowAutomation += () => OnShowMainWindow("automation-rules");
-        _tray.ShowIconManager += () => OnShowMainWindow("icon-manager");
+        _tray.ShowSettings += () => OnShowMainWindow("settings");
         _tray.ExitRequested += OnExitRequested;
 
         // 6. 效率工具初始化
@@ -314,17 +303,15 @@ public partial class App : Application
 
             _hotkeys = new GlobalHotkeyService(src.Handle);
 
-            // Alt+Space → 全局搜索（跳转主窗口搜索页）
+            // Alt+Space → 搜索/启动（设计案 v3.1 §3.2：全局搜索与快速启动器合并为同一入口）
+            // 目前跳转主窗口搜索页；M7 会换成轻量启动器窗口，届时不再打开设置窗口。
             _hotkeys.Register(Win32.MOD_ALT, Win32.VK_SPACE,
                 () => OnShowMainWindow("global-search"),
-                "全局搜索 (Alt+Space)");
+                "搜索/启动 (Alt+Space)");
 
-            // Ctrl+Space → 控制中心（跳转主窗口控制中心页）
-            _hotkeys.Register(Win32.MOD_CONTROL, Win32.VK_SPACE,
-                () => OnShowMainWindow("control-center"),
-                "控制中心 (Ctrl+Space)");
-
-            Console.WriteLine("[App] 全局热键已注册：Alt+Space 全局搜索 / Ctrl+Space 控制中心");
+            // 原 Ctrl+Space → 控制中心已移除：控制中心在 v3.1 §3.4 不做清单中，
+            // 指向已删除页面的热键点了没反应，比没有热键更糟。
+            Console.WriteLine("[App] 全局热键已注册：Alt+Space 搜索/启动");
         }
         catch (Exception ex)
         {
@@ -345,12 +332,9 @@ public partial class App : Application
             if (_mainWindow == null)
             {
                 _mainWindow = new MainWindow(
-                    _appIndex, _fileIndex, _windowManager, _controlCenter,
-                    _classifier, _diskMapper, _automation, _iconManager,
+                    _appIndex, _fileIndex, _classifier, _automation,
                     _registry, _widgetHost!, id => _registry.Create(id)!);
 
-                // 透传专注模式切换
-                _mainWindow.FocusModeToggled += OnFocusModeToggled;
                 // 透传组件布局变更
                 _mainWindow.WidgetLayoutChanged += SaveLayout;
 
@@ -404,20 +388,8 @@ public partial class App : Application
         }
     }
 
-    /// <summary>专注模式切换 — 隐藏/显示全部显示器上的桌面组件</summary>
-    private void OnFocusModeToggled(bool enabled)
-    {
-        foreach (var overlay in _overlays)
-        {
-            foreach (var container in overlay.Host.Containers)
-                container.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        if (_iconLayer != null && _zdesktopIconMode)
-            _iconLayer.Visibility = enabled ? Visibility.Collapsed : Visibility.Visible;
-
-        Console.WriteLine($"[App] 专注模式: {(enabled ? "已开启" : "已关闭")}");
-    }
+    // 专注模式随控制中心一并移除（设计案 v3.1 §3.4 不做清单）。
+    // 「临时隐藏全部组件」的需求由托盘的「隐藏桌面组件」承担，见 OnToggleWidgets。
 
     // ===== 桌面图标 =====
 

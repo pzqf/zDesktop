@@ -37,23 +37,14 @@ public sealed class TrayIconManager : IDisposable
     /// <summary>打开全局搜索</summary>
     public event Action? ShowGlobalSearch;
 
-    /// <summary>打开窗口管理</summary>
-    public event Action? ShowWindowManager;
-
-    /// <summary>打开控制中心</summary>
-    public event Action? ShowControlCenter;
-
     /// <summary>打开文件分类</summary>
     public event Action? ShowFileClassify;
-
-    /// <summary>打开磁盘映射</summary>
-    public event Action? ShowDiskMapper;
 
     /// <summary>打开自动化规则</summary>
     public event Action? ShowAutomation;
 
-    /// <summary>打开图标管理</summary>
-    public event Action? ShowIconManager;
+    /// <summary>打开设置</summary>
+    public event Action? ShowSettings;
 
     /// <summary>退出程序</summary>
     public event Action? ExitRequested;
@@ -76,16 +67,13 @@ public sealed class TrayIconManager : IDisposable
         var addWidgetItem = new ToolStripMenuItem("添加组件", null, (_, _) => ShowWidgetPanel?.Invoke());
         menu.Items.Add(addWidgetItem);
 
-        // 功能中心子菜单 — 所有效率工具入口
+        // 功能入口 —— 与设置窗口的 6 个导航页保持一致（设计案 v3.1 §3.2）
         var toolsMenu = new ToolStripMenuItem("功能中心");
         toolsMenu.DropDownItems.Add("全局搜索", null, (_, _) => ShowGlobalSearch?.Invoke());
-        toolsMenu.DropDownItems.Add("窗口管理", null, (_, _) => ShowWindowManager?.Invoke());
-        toolsMenu.DropDownItems.Add("控制中心", null, (_, _) => ShowControlCenter?.Invoke());
-        toolsMenu.DropDownItems.Add(new ToolStripSeparator());
         toolsMenu.DropDownItems.Add("文件分类整理", null, (_, _) => ShowFileClassify?.Invoke());
-        toolsMenu.DropDownItems.Add("磁盘映射", null, (_, _) => ShowDiskMapper?.Invoke());
         toolsMenu.DropDownItems.Add("自动化规则", null, (_, _) => ShowAutomation?.Invoke());
-        toolsMenu.DropDownItems.Add("图标管理", null, (_, _) => ShowIconManager?.Invoke());
+        toolsMenu.DropDownItems.Add(new ToolStripSeparator());
+        toolsMenu.DropDownItems.Add("设置", null, (_, _) => ShowSettings?.Invoke());
         menu.Items.Add(toolsMenu);
 
         menu.Items.Add(new ToolStripSeparator());

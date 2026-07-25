@@ -109,17 +109,19 @@ public sealed class HomePage : ContentPage
         };
     }
 
-    /// <summary>构建快捷入口卡片网格（搜索 / 文件分类 / 磁盘映射 / 控制中心）</summary>
+    /// <summary>
+    /// 构建快捷入口卡片网格。
+    /// 入口必须与实际存在的导航页一一对应 —— 指向已删除页面的卡片点了没反应，
+    /// 比没有这个卡片更糟。
+    /// </summary>
     private WrapPanel BuildQuickEntries()
     {
         var panel = new WrapPanel { Margin = new Thickness(0, 0, 0, 20) };
 
         panel.Children.Add(MakeEntryCard("全局搜索", "聚合文件 / 应用 / 网页", "🔍", "global-search"));
         panel.Children.Add(MakeEntryCard("文件分类", "一键整理桌面文件", "🗂", "file-classify"));
-        panel.Children.Add(MakeEntryCard("磁盘映射", "多窗格文件管理", "💾", "disk-mapper"));
-        panel.Children.Add(MakeEntryCard("控制中心", "系统状态与快捷开关", "⚙", "control-center"));
-        panel.Children.Add(MakeEntryCard("窗口管理", "排列 / 置顶 / 透明度", "🪟", "window-manager"));
         panel.Children.Add(MakeEntryCard("自动化规则", "文件监控与自动处理", "⚡", "automation-rules"));
+        panel.Children.Add(MakeEntryCard("桌面组件", "时钟 / 日历 / 待办 / 天气", "🧩", "desktop-widgets"));
 
         return panel;
     }
