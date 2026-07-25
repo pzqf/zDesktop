@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     T2 真机回归（设计案 v3.1 §十）—— 需要真实 Windows 桌面，可脚本化断言。
 
@@ -22,10 +22,18 @@
 
 [CmdletBinding()]
 param(
-    [string]$ExePath = (Join-Path $PSScriptRoot '..\bin\Release\zDesktop.App.exe')
+    # 留空表示用仓库默认输出路径。$PSScriptRoot 在 PS 5.1 的参数默认值中尚未赋值，
+    # 不能写在这里，必须在脚本体内解析。
+    [string]$ExePath = ''
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace($ExePath)) {
+    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $ExePath = Join-Path $scriptDir '..\bin\Release\zDesktop.App.exe'
+}
+$ExePath = [System.IO.Path]::GetFullPath($ExePath)
 $script:Failures = @()
 $script:Passes = 0
 $script:Skips = 0
@@ -42,17 +50,24 @@ public static extern bool IsWindowVisible(IntPtr hWnd);
 '@
 }
 
+# 注意：向 P/Invoke 的 [string] 参数传 $null 时，PowerShell 会把它转成**空字符串**，
+# 于是 FindWindow('Progman', '') 变成「查找标题为空的 Progman 窗口」而匹配不到
+# （Progman 的标题是 "Program Manager"）。必须用 [NullString]::Value 传真正的 NULL。
+$script:NullStr = [NullString]::Value
+
 function Get-DefViewHandle {
     # SHELLDLL_DefView 挂在 Progman 下，或在某个 WorkerW 下（取决于壁纸状态）
-    $progman = [ZDesktopT2.Native]::FindWindow('Progman', $null)
-    $defView = [ZDesktopT2.Native]::FindWindowEx($progman, [IntPtr]::Zero, 'SHELLDLL_DefView', $null)
-    if ($defView -ne [IntPtr]::Zero) { return $defView }
+    $progman = [ZDesktopT2.Native]::FindWindow('Progman', $script:NullStr)
+    if ($progman -ne [IntPtr]::Zero) {
+        $defView = [ZDesktopT2.Native]::FindWindowEx($progman, [IntPtr]::Zero, 'SHELLDLL_DefView', $script:NullStr)
+        if ($defView -ne [IntPtr]::Zero) { return $defView }
+    }
 
     $worker = [IntPtr]::Zero
     while ($true) {
-        $worker = [ZDesktopT2.Native]::FindWindowEx([IntPtr]::Zero, $worker, 'WorkerW', $null)
+        $worker = [ZDesktopT2.Native]::FindWindowEx([IntPtr]::Zero, $worker, 'WorkerW', $script:NullStr)
         if ($worker -eq [IntPtr]::Zero) { break }
-        $defView = [ZDesktopT2.Native]::FindWindowEx($worker, [IntPtr]::Zero, 'SHELLDLL_DefView', $null)
+        $defView = [ZDesktopT2.Native]::FindWindowEx($worker, [IntPtr]::Zero, 'SHELLDLL_DefView', $script:NullStr)
         if ($defView -ne [IntPtr]::Zero) { return $defView }
     }
     return [IntPtr]::Zero
@@ -110,7 +125,20 @@ Stop-ZDesktop
 Write-Host ''
 Write-Host 'T2-1 强杀恢复' -ForegroundColor Cyan
 # ---------------------------------------------------------------
-Assert-True (Test-DesktopIconsVisible) 'T2-1.0 基线：启动前桌面图标可见' '测试前提不成立，请检查桌面状态'
+# 基线是所有后续断言的前提：找不到桌面图标层，后面每一条可见性断言都会变成假失败。
+# 因此这里直接中止，而不是让脚本跑出一串级联红色。
+if (-not (Test-DesktopIconsVisible)) {
+    Write-Host '  [ABORT] 基线不成立：找不到可见的 SHELLDLL_DefView' -ForegroundColor Red
+    Write-Host ''
+    Write-Host '  可能原因：' -ForegroundColor Yellow
+    Write-Host '    - 当前不是交互式桌面会话（远程/服务/CI 上下文）'
+    Write-Host '    - explorer.exe 未作为 shell 运行'
+    Write-Host '    - 桌面图标已被其他工具隐藏'
+    Write-Host ''
+    Write-Host '  请在正常登录的交互式 PowerShell 中运行本脚本。' -ForegroundColor Yellow
+    exit 2
+}
+Assert-True $true 'T2-1.0 基线：启动前桌面图标可见' ''
 
 $proc = Start-ZDesktop
 Assert-True (-not $proc.HasExited) 'T2-1.1 应用启动成功' '进程启动后立即退出'
@@ -123,7 +151,7 @@ Start-Sleep -Seconds 2
 Assert-True (Test-DesktopIconsVisible) 'T2-1.3 强杀后桌面图标仍可见' '强杀导致桌面被破坏，零破坏契约失败'
 
 # 重启：账本若有待还原项应被消费掉
-$proc2 = Start-ZDesktop
+[void](Start-ZDesktop)
 Assert-True (Test-DesktopIconsVisible) 'T2-1.4 重启后桌面图标可见' '重启后未能还原桌面'
 
 if (Test-Path $journalPath) {
