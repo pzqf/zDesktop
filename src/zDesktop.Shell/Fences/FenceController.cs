@@ -25,6 +25,22 @@ public sealed class FenceController : IDisposable
     private readonly FenceOrganizer _organizer;
     private readonly DesktopFocusWatcher _focus;
 
+    /// <summary>
+    /// 候选 B 的实时背景窗口（寄生在壁纸层 WorkerW 内，位于图标之下）。
+    /// 可用时优先走它 —— 实时重绘、零延迟；不可用时退回候选 A 合成进壁纸。
+    /// </summary>
+    private FenceBackgroundLayer? _background;
+
+    /// <summary>
+    /// 是否启用候选 B（壁纸层实时渲染）。
+    /// Win11 实测不可行（见 <see cref="Initialize"/> 中的说明），默认关闭。
+    /// </summary>
+    public static bool EnableWallpaperLayerRendering { get; set; }
+
+    /// <summary>当前背景渲染走的是哪条路（诊断用）</summary>
+    public string BackgroundMode =>
+        _background is { IsAttached: true } ? "候选B/实时图层" : "候选A/合成壁纸";
+
     private readonly List<FenceLayer> _layers = new();
     private DispatcherTimer? _pollTimer;
 
@@ -103,8 +119,34 @@ public sealed class FenceController : IDisposable
         _resolver.Refresh();
         _assignments.PruneOrphans(_resolver.AllPaths);
 
+        // 候选 B（寄生壁纸层实时渲染）在 Windows 11 上实测不可行，默认关闭。
+        //
+        // 前置条件全部满足：0x052C 后能拿到壁纸层 WorkerW、Z 序确认在图标层之下、
+        // 未被第三方占用、HwndSource 也成功寄生（日志确认）。但画面始终不出现。
+        // 四种渲染方式全试过：Window+AllowsTransparency / WS_EX_LAYERED+色键
+        // （SetLayeredWindowAttributes 返回 87）/ 不透明+WS_CHILD / HwndSource+WS_CHILD。
+        //
+        // 结论：Win11 的壁纸不再由该 WorkerW 绘制，而是 DWM 直接合成在它**之上**，
+        // 放进去的内容会被壁纸盖住。经典 WorkerW 技巧在新版 Win11 上已失效。
+        //
+        // 代码保留：Win10 与旧版 Win11 仍适用该拓扑，将来可按系统版本条件启用；
+        // 详见 spikes/M3-WorkerWProbe 的拓扑探测结果。
+        if (EnableWallpaperLayerRendering)
+        {
+            _background = new FenceBackgroundLayer();
+            if (!_background.Attach())
+            {
+                _background.Dispose();
+                _background = null;
+            }
+        }
+
+        if (_background == null)
+            Console.WriteLine("[Fence] 背景走候选 A（合成进壁纸）");
+
         IsAvailable = true;
-        Console.WriteLine($"[Fence] 已就绪：{_config.Fences.Count} 个分区，{_assignments.Count} 条归属");
+        Console.WriteLine($"[Fence] 已就绪：{_config.Fences.Count} 个分区，{_assignments.Count} 条归属，" +
+                          $"背景渲染={BackgroundMode}");
 
         if (IsBlockedByAutoArrange)
             Console.WriteLine("[Fence] ⚠ 「自动排列图标」已开启，分区无法生效 —— 需引导用户关闭");
@@ -311,13 +353,68 @@ public sealed class FenceController : IDisposable
         try
         {
             _sync.SyncToExplorer(_config, _assignments, _space);
-            ScheduleCompose();
+
+            if (_background != null)
+            {
+                // 候选 B：实时重绘，无需去抖也无需碰壁纸
+                RenderBackgroundLayer();
+            }
+            else
+            {
+                ScheduleCompose();
+            }
+
             BackgroundInvalidated?.Invoke();
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[Fence] 同步失败: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// 候选 B：把分区矩形交给实时背景层重绘。
+    /// 立即生效，无延迟、不改壁纸文件。
+    /// </summary>
+    private void RenderBackgroundLayer()
+    {
+        if (_background == null) return;
+
+        // Explorer 重启会销毁壁纸层，需重新寄生
+        if (!_background.ReattachIfNeeded())
+        {
+            Console.WriteLine("[Fence] 壁纸层已失效且无法重新寄生，回退候选 A");
+            _background.Dispose();
+            _background = null;
+            ScheduleCompose();
+            return;
+        }
+
+        _background.FitToLayer();
+
+        // 底图：逐屏取当前壁纸。我们的窗口不透明，必须自己把壁纸画出来
+        var backdrops = new List<(IconRect, string?)>();
+        using (var surface = new WallpaperSurface())
+        {
+            foreach (var mw in surface.Enumerate())
+            {
+                var topLeft = _space.ScreenToClient(mw.Rect.Left, mw.Rect.Top);
+                backdrops.Add((
+                    new IconRect(topLeft.X, topLeft.Y, mw.Rect.Width, mw.Rect.Height),
+                    string.IsNullOrEmpty(mw.WallpaperPath) ? null : mw.WallpaperPath));
+            }
+        }
+        _background.SetBackdrops(backdrops);
+
+        var rects = new List<(IconRect, string, bool)>();
+        foreach (var fence in _config.Fences)
+        {
+            var rect = _space.FenceToIconSpace(fence);
+            if (rect == null) continue; // 显示器已拔掉
+            rects.Add((rect.Value, fence.Color, fence.Collapsed));
+        }
+
+        _background.Render(rects);
     }
 
     /// <summary>把合成推迟到操作停止之后，连续编辑只合成最后一次</summary>
@@ -430,6 +527,10 @@ public sealed class FenceController : IDisposable
         DetachLayers();
         _focus.Dispose();
         Save();
+
+        // 候选 B 的背景层随进程销毁即消失，无需还原壁纸
+        _background?.Dispose();
+        _background = null;
 
         // 还原壁纸 —— 零破坏契约要求退出后桌面与未安装时一致
         _compositor.RestoreAll();

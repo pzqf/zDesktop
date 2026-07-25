@@ -12,12 +12,27 @@ public static class Win32
 {
     // ===== 窗口扩展样式 (WS_EX) =====
     public const int WS_EX_LAYERED = 0x00080000;       // 分层窗口，支持 per-pixel alpha
+
+    /// <summary>色键抠底 —— 指定颜色的像素完全透明</summary>
+    public const uint LWA_COLORKEY = 0x00000001;
+    /// <summary>整窗统一不透明度</summary>
+    public const uint LWA_ALPHA = 0x00000002;
     public const int WS_EX_TOOLWINDOW = 0x00000080;    // 不在任务栏/Alt+Tab 显示
     public const int WS_EX_TRANSPARENT = 0x00000020;   // 鼠标点击透传到下层
     public const int WS_EX_NOACTIVATE = 0x08000000;    // 点击不抢焦点
 
     // ===== 窗口样式 (WS) =====
     public const int WS_POPUP = unchecked((int)0x80000000);
+
+    /// <summary>子窗口。SetParent 不会自动置位，需显式设置才会被裁剪进父窗口渲染。</summary>
+    public const long WS_CHILD = 0x40000000L;
+
+    /// <summary>WS_POPUP 的 64 位形式，供样式位运算使用</summary>
+    public const long WS_POPUP_LONG = 0x80000000L;
+
+    public const long WS_VISIBLE = 0x10000000L;
+
+    public const uint SWP_FRAMECHANGED = 0x0020;
 
     // ===== SetWindowPos 标志 =====
     public const uint SWP_NOSIZE = 0x0001;

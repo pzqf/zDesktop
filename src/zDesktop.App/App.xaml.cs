@@ -102,6 +102,11 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // zDesktop 是托盘常驻程序，绝不能因为「最后一个窗口关闭」就退出。
+        // WPF 默认 OnLastWindowClose 会在这些场景把整个程序关掉：
+        // 关闭重命名对话框、分区背景层探测失败后关闭该窗口、主窗口尚未创建时关掉设置窗。
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
         // 0a. 还原模式 —— 供卸载程序调用：zDesktop.App.exe --restore
         //     只还原系统状态然后立即退出，不启动任何 UI
         if (e.Args.Any(a => string.Equals(a, "--restore", StringComparison.OrdinalIgnoreCase)))
