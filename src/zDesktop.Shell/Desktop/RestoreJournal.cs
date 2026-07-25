@@ -46,11 +46,24 @@ public sealed class RestoreJournal
         /// <summary>是否隐藏过原生桌面图标层（自渲染实验模式）</summary>
         public bool NativeIconsHidden { get; set; }
 
-        /// <summary>安装/首次运行时的壁纸路径（分区背景合成会改壁纸，M3 起使用）</summary>
+        /// <summary>安装/首次运行时的壁纸路径（单屏兼容字段）</summary>
         public string? OriginalWallpaperPath { get; set; }
 
         /// <summary>原壁纸样式（注册表 WallpaperStyle）</summary>
         public string? OriginalWallpaperStyle { get; set; }
+
+        /// <summary>
+        /// 每屏的**原始**壁纸路径，键为 Shell 显示器设备路径。
+        ///
+        /// <para><b>为什么必须单独记而不是每次读当前壁纸</b>：分区背景合成会把
+        /// 合成图设为壁纸，若下次仍以「当前壁纸」为底图，我们自己的输出就成了底图，
+        /// 分区框会被反复叠加。因此底图永远取这里记录的原图，
+        /// 只有当前壁纸不是我们的产物时才更新它。</para>
+        ///
+        /// <para>第三方壁纸工具（本机实测有元气桌面在管理壁纸）轮换壁纸后，
+        /// 这里也会随之更新为新的用户壁纸。</para>
+        /// </summary>
+        public Dictionary<string, string> OriginalWallpapers { get; set; } = new();
 
         /// <summary>
         /// 桌面「自动排列图标」的原始开关值（M3 分区功能会关闭它，见设计案 §4.2 决策 2）。
@@ -123,11 +136,35 @@ public sealed class RestoreJournal
         Save();
     }
 
+    /// <summary>
+    /// 记录某屏的原始壁纸。已有记录时不覆盖 —— 首次记下的才是用户的真壁纸。
+    /// </summary>
+    public void RememberWallpaper(string monitorId, string path)
+    {
+        if (string.IsNullOrEmpty(monitorId) || string.IsNullOrEmpty(path)) return;
+        if (_entry.OriginalWallpapers.TryGetValue(monitorId, out var existing) &&
+            string.Equals(existing, path, StringComparison.OrdinalIgnoreCase)) return;
+
+        _entry.OriginalWallpapers[monitorId] = path;
+        Save();
+    }
+
+    /// <summary>取某屏记录的原始壁纸；无记录返回 null</summary>
+    public string? GetRememberedWallpaper(string monitorId)
+        => _entry.OriginalWallpapers.TryGetValue(monitorId, out var p) ? p : null;
+
+    /// <summary>清除某屏的壁纸记录（还原后调用）</summary>
+    public void ForgetWallpaper(string monitorId)
+    {
+        if (_entry.OriginalWallpapers.Remove(monitorId)) Save();
+    }
+
     /// <summary>是否存在任何待还原项</summary>
     public bool HasPendingRestore()
         => _entry.NativeIconsHidden
         || _entry.OriginalWallpaperPath != null
-        || _entry.OriginalAutoArrange != null;
+        || _entry.OriginalAutoArrange != null
+        || _entry.OriginalWallpapers.Count > 0;
 
     /// <summary>
     /// 还原账本记录的全部系统状态，成功后清空账本。
@@ -169,6 +206,28 @@ public sealed class RestoreJournal
             catch (Exception ex)
             {
                 Console.WriteLine($"[RestoreJournal] 还原壁纸失败: {ex.Message}");
+            }
+        }
+
+        if (_entry.OriginalWallpapers.Count > 0)
+        {
+            // 逐屏还原：一屏失败不影响其余屏
+            using var surface = new Interop.WallpaperSurface();
+            foreach (var (monitorId, path) in _entry.OriginalWallpapers.ToList())
+            {
+                try
+                {
+                    if (surface.IsAvailable && System.IO.File.Exists(path))
+                    {
+                        surface.SetWallpaper(monitorId, path);
+                        Console.WriteLine($"[RestoreJournal] 已还原壁纸: {monitorId}");
+                    }
+                    _entry.OriginalWallpapers.Remove(monitorId);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[RestoreJournal] 还原壁纸失败 ({monitorId}): {ex.Message}");
+                }
             }
         }
 
