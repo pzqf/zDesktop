@@ -31,6 +31,17 @@ public sealed class FenceVisual : Canvas
     private readonly Border _grip;
     private readonly Border _outline;
 
+    /// <summary>
+    /// 标题字体。
+    ///
+    /// <para><b>必须显式指定</b>：不指定时 WPF 用 Segoe UI，而它没有中文字形，
+    /// 于是走逐字回退；回退字体再遇上 SemiBold 会触发合成加粗（双绘偏移），
+    /// 实测「临时」二字被糊成一团而「工作文件」正常 —— 同样的代码、字号，
+    /// 只因回退路径不同。指定含中文的字体族可绕开整条回退路径。</para>
+    /// </summary>
+    private static readonly FontFamily TitleFont =
+        new("Microsoft YaHei UI, Microsoft YaHei, Segoe UI");
+
     private Point _dragStart;
     private bool _dragging;
     private bool _resizing;
@@ -79,8 +90,11 @@ public sealed class FenceVisual : Canvas
         {
             Text = fence.Name,
             Foreground = Theme.TextPrimary,
-            FontSize = 12,
-            FontWeight = FontWeights.SemiBold,
+            FontFamily = TitleFont,
+            FontSize = 12.5,
+            // 用 Normal 而非 SemiBold：中文字体多数没有 SemiBold 字重，
+            // WPF 会合成加粗（双绘偏移），在小字号下直接糊成一团。
+            FontWeight = FontWeights.Normal,
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
             Margin = new Thickness(10, 0, 6, 0),
@@ -90,6 +104,7 @@ public sealed class FenceVisual : Canvas
         {
             Text = fence.Collapsed ? "▸" : "▾",
             Foreground = Theme.TextSecondary,
+            FontFamily = TitleFont,
             FontSize = 11,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 10, 0),
@@ -106,8 +121,11 @@ public sealed class FenceVisual : Canvas
         _titleBar = new Border
         {
             Height = TitleHeight,
-            Background = new SolidColorBrush(Color.FromArgb(150, 22, 24, 36)),
-            BorderBrush = new SolidColorBrush(Color.FromArgb(110, accent.R, accent.G, accent.B)),
+            // 标题栏必须足够不透明。
+            // alpha=150 时亮色壁纸（实测一张浅绿树叶图）会透上来把文字吃掉，
+            // 标题在任何壁纸下都必须清晰可读，这里不为通透性让步。
+            Background = new SolidColorBrush(Color.FromArgb(235, 24, 26, 38)),
+            BorderBrush = new SolidColorBrush(Color.FromArgb(150, accent.R, accent.G, accent.B)),
             BorderThickness = new Thickness(1),
             CornerRadius = Theme.ControlRadius,
             Cursor = Cursors.SizeAll,
