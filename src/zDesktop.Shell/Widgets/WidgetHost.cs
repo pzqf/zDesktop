@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using zDesktop.Core.Fences;
 using zDesktop.Core.Layout;
 using zDesktop.Core.Widgets;
 
@@ -194,9 +195,98 @@ public class WidgetHost : Canvas
         RemoveWidget(container);
     }
 
+    /// <summary>
+    /// 提供本屏当前的分区矩形（DIP，相对工作区），供组件避让使用。
+    /// 由 App 层接上分区总控；未接时组件不做避让。
+    /// </summary>
+    public Func<IReadOnlyList<LayoutBox>>? FenceBoxProvider { get; set; }
+
+    /// <summary>
+    /// 拖拽结束时应用避让（设计案 v3.1 §3.1 主线二）。
+    ///
+    /// <para>只在**松手时**纠正，不在拖动过程中干预 —— 拖到一半就被弹开会让人
+    /// 完全无法把组件放到想要的位置。</para>
+    ///
+    /// <para>组件压在分区上会遮住分区里的图标，而那些是原生图标，
+    /// 用户点不到就等于零破坏契约被破坏。</para>
+    /// </summary>
     private void OnContainerMoved(WidgetContainer container, double x, double y)
     {
+        // 拖拽只避让分区，不避让其他组件 —— 用户可能就是想把两个组件并排贴在一起
+        ApplyAvoidance(container, FenceBoxProvider?.Invoke());
         LayoutChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// 对全部组件应用一次避让 —— 分区新建/移动/缩放后调用（设计案 v3.1 §3.1）。
+    ///
+    /// 新建的分区可能正好盖在已有组件上，此时该让开的是组件而不是分区：
+    /// 分区的位置是用户刚刚亲手画出来的，组件的位置是历史遗留。
+    /// </summary>
+    /// <returns>实际被移动的组件数</returns>
+    public int ApplyAvoidanceToAll()
+    {
+        var fences = FenceBoxProvider?.Invoke();
+        if (fences == null || fences.Count == 0) return 0;
+
+        var moved = 0;
+        foreach (var container in _containers)
+        {
+            if (container.Visibility != Visibility.Visible) continue;
+
+            // 障碍物 = 分区 + **其他组件**。
+            // 只避让分区的话，被同一个分区推开的多个组件会全部落到同一个位置叠在一起
+            // （实测：时钟与日历都被推到 (80,448)）。
+            var obstacles = new List<LayoutBox>(fences);
+            foreach (var other in _containers)
+            {
+                if (ReferenceEquals(other, container)) continue;
+                if (other.Visibility != Visibility.Visible) continue;
+
+                var b = BoxOf(other);
+                if (b != null) obstacles.Add(b.Value);
+            }
+
+            if (ApplyAvoidance(container, obstacles)) moved++;
+        }
+
+        if (moved > 0) LayoutChanged?.Invoke();
+        return moved;
+    }
+
+    /// <summary>取容器当前矩形；尺寸未就绪时返回 null</summary>
+    private static LayoutBox? BoxOf(WidgetContainer container)
+    {
+        var w = container.ActualWidth > 0 ? container.ActualWidth : container.Width;
+        var h = container.ActualHeight > 0 ? container.ActualHeight : container.Height;
+        if (double.IsNaN(w) || double.IsNaN(h) || w <= 0 || h <= 0) return null;
+
+        return new LayoutBox(Canvas.GetLeft(container), Canvas.GetTop(container), w, h);
+    }
+
+    /// <returns>组件是否被移动</returns>
+    private bool ApplyAvoidance(WidgetContainer container, IReadOnlyList<LayoutBox>? obstacles)
+    {
+        if (obstacles == null || obstacles.Count == 0) return false;
+
+        var boxOrNull = BoxOf(container);
+        if (boxOrNull == null) return false;
+
+        var box = boxOrNull.Value;
+        var width = box.Width;
+        var height = box.Height;
+        var resolved = WidgetAvoidance.Resolve(box, obstacles,
+            ActualWidth > 0 ? ActualWidth : width,
+            ActualHeight > 0 ? ActualHeight : height);
+
+        if (Math.Abs(resolved.X - box.X) < 0.5 && Math.Abs(resolved.Y - box.Y) < 0.5) return false;
+
+        Canvas.SetLeft(container, resolved.X);
+        Canvas.SetTop(container, resolved.Y);
+
+        Console.WriteLine($"[WidgetHost] 组件 {container.Widget.Descriptor.Name} 避让分区: " +
+                          $"{box} → {resolved}");
+        return true;
     }
 
     private void OnContainerResized(WidgetContainer container, double w, double h)

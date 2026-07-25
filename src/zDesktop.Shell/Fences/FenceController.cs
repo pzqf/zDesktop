@@ -622,6 +622,25 @@ public sealed class FenceController : IDisposable
         SyncAndCompose();
     }
 
+    /// <summary>
+    /// 取指定显示器上的分区矩形（DIP，相对该屏工作区），供组件避让使用。
+    /// 折叠的分区只占标题栏高度，组件可以贴在它下面。
+    /// </summary>
+    public IReadOnlyList<Core.Layout.LayoutBox> FenceBoxesOn(string monitorKey)
+    {
+        var result = new List<Core.Layout.LayoutBox>();
+
+        foreach (var fence in _config.Fences)
+        {
+            if (!string.Equals(fence.MonitorKey, monitorKey, StringComparison.OrdinalIgnoreCase)) continue;
+
+            var height = fence.Collapsed ? FenceVisual.TitleHeight : fence.Rect.Height;
+            result.Add(new Core.Layout.LayoutBox(fence.Rect.X, fence.Rect.Y, fence.Rect.Width, height));
+        }
+
+        return result;
+    }
+
     /// <summary>命中测试聚合 —— 供覆盖层调用</summary>
     public bool HitTest(FenceLayer layer, System.Windows.Point point) => layer.HitTest(point);
 

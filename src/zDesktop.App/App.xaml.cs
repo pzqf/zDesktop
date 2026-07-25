@@ -151,6 +151,10 @@ public partial class App : Application
         _fences.Initialize();
         _fences.RenameRequested += OnFenceRenameRequested;
 
+        // 分区变动后让已有组件让开：新建的分区可能正好盖在组件上，
+        // 此时该让开的是组件 —— 分区位置是用户刚亲手画的，组件位置是历史遗留
+        _fences.BackgroundInvalidated += OnFencesChangedApplyAvoidance;
+
         // 3. 按显示器建立覆盖层（每屏一个），并恢复组件布局
         BuildOverlays();
 
@@ -219,6 +223,12 @@ public partial class App : Application
             overlay.InsertLayerBelowWidgets(fenceLayer);
             _fenceLayers[monitor.Key] = fenceLayer;
             _fences?.AttachLayer(fenceLayer, monitor.Key);
+
+            // 组件避让分区：拖拽松手时若压住分区超过 30%，自动贴到分区外缘。
+            // 组件压在分区上会遮住分区里的原生图标，用户点不到就等于零破坏契约被破坏。
+            var key = monitor.Key;
+            overlay.Host.FenceBoxProvider = () =>
+                _fences?.FenceBoxesOn(key) ?? Array.Empty<zDesktop.Core.Layout.LayoutBox>();
 
             overlay.Host.LayoutChanged += SaveLayout;
             overlay.Host.SettingsRequested += OnWidgetSettingsRequested;
@@ -328,6 +338,20 @@ public partial class App : Application
         _iconLayer = null;
         _desktopSearchBar = null;
         _iconsLoaded = false;
+    }
+
+    /// <summary>分区变动后，让被压住的组件让开（设计案 v3.1 §3.1）</summary>
+    private void OnFencesChangedApplyAvoidance()
+    {
+        var moved = 0;
+        foreach (var overlay in _overlays)
+            moved += overlay.Host.ApplyAvoidanceToAll();
+
+        if (moved > 0)
+        {
+            Console.WriteLine($"[App] {moved} 个组件已让开新的分区位置");
+            SaveLayout();
+        }
     }
 
     /// <summary>全屏状态变化 — 所有覆盖层统一让位/恢复</summary>
