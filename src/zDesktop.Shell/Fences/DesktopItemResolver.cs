@@ -69,16 +69,18 @@ public sealed class DesktopItemResolver
             if (IsSkipped(name)) continue;
 
             DateTime modified;
+            var isDirectory = false;
             try
             {
                 modified = File.GetLastWriteTime(path);
+                isDirectory = (File.GetAttributes(path) & FileAttributes.Directory) != 0;
             }
             catch
             {
                 modified = DateTime.MinValue; // 权限不足等，按最旧处理，不影响归属本身
             }
 
-            _snapshots[path] = FileSnapshot.Of(path, modified);
+            _snapshots[path] = FileSnapshot.Of(path, modified, isDirectory);
 
             // 显示名有两种可能形态：显示扩展名时是全名，隐藏时是主名。
             // 两种都登记，命中任一即可反查 —— 但只有唯一候选时才会被采用。

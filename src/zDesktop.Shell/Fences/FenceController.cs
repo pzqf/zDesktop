@@ -340,6 +340,118 @@ public sealed class FenceController : IDisposable
     /// <summary>快照列表（供撤销 UI）</summary>
     public List<FenceSnapshot> ListSnapshots() => _snapshots.List();
 
+    // ===== 首次运行引导（M4，设计案 v3.1 §六）=====
+
+    private readonly FirstRunStore _firstRun = new();
+
+    /// <summary>是否应展示引导卡片（尚未展示过，且桌面上确实有可整理的文件）</summary>
+    public bool ShouldShowOnboarding => IsAvailable && _firstRun.ShouldShowOnboarding;
+
+    /// <summary>桌面上的文件数（引导文案用）</summary>
+    public int DesktopFileCount => _resolver.AllPaths.Count;
+
+    /// <summary>标记引导已展示 —— 「以后再说」之后不再弹第二次</summary>
+    public void MarkOnboardingShown() => _firstRun.MarkOnboardingShown();
+
+    /// <summary>
+    /// 生成首次运行的整理建议。**纯计算，不写任何东西。**
+    /// </summary>
+    public OrganizeProposal BuildProposal()
+    {
+        _resolver.Refresh();
+
+        var primary = MonitorSet.Primary(_space.Monitors.ToList());
+        var (_, _, width, height) = primary.WorkAreaDip;
+
+        return FenceProposal.Build(_resolver.Snapshots.Values.ToList(), width, height);
+    }
+
+    /// <summary>在桌面上预演建议方案（只画不写）</summary>
+    public void ShowProposalPreview(OrganizeProposal proposal)
+    {
+        var primary = MonitorSet.Primary(_space.Monitors.ToList());
+        var items = proposal.Fences
+            .Select(f => (f.Rect, f.Name, f.Color, f.Files.Count))
+            .ToList();
+
+        foreach (var layer in _layers)
+        {
+            // 建议方案目前只落在主屏
+            if (string.Equals(layer.MonitorKey, primary.Key, StringComparison.OrdinalIgnoreCase))
+                layer.ShowProposalPreview(items);
+        }
+    }
+
+    /// <summary>清除方案预演</summary>
+    public void ClearProposalPreview()
+    {
+        foreach (var layer in _layers) layer.ClearProposalPreview();
+    }
+
+    /// <summary>
+    /// 应用建议方案：创建分区 → 落盘快照 → 归属入区 → 写回坐标。
+    /// </summary>
+    /// <returns>整理结果；快照失败时不执行任何修改</returns>
+    public OrganizeResult ApplyProposal(OrganizeProposal proposal)
+    {
+        if (!IsAvailable || proposal.Fences.Count == 0)
+            return new OrganizeResult(null, 0, 0);
+
+        ClearProposalPreview();
+
+        var primary = MonitorSet.Primary(_space.Monitors.ToList());
+
+        // 先建分区（此时还没动任何图标）
+        var created = new List<(Fence Fence, IReadOnlyList<string> Files)>();
+        foreach (var p in proposal.Fences)
+        {
+            var fence = new Fence
+            {
+                Id = Guid.NewGuid().ToString("N")[..8],
+                MonitorKey = primary.Key,
+                Name = p.Name,
+                Color = p.Color,
+                Rect = p.Rect.Clone(),
+                Rules = p.Rules.ToList(),
+                SortMode = FenceSortMode.Name,
+            };
+            _config.Fences.Add(fence);
+            created.Add((fence, p.Files));
+        }
+
+        RebuildLayers();
+
+        // 快照必须在真正动图标之前落盘。失败即回滚刚建的分区，绝不执行无法撤销的操作
+        var result = _organizer.Organize(_config, _assignments, _space, "首次整理");
+        if (!result.Succeeded)
+        {
+            foreach (var (fence, _) in created) _config.Fences.RemoveAll(f => f.Id == fence.Id);
+            RebuildLayers();
+            Console.WriteLine("[Fence] 快照失败，已回滚新建的分区，未执行任何整理");
+            return result;
+        }
+
+        // 规则已经把匹配文件收进去了；这里补齐规则没覆盖到的（如扩展名被隐藏的边角情况）
+        foreach (var (fence, files) in created)
+        {
+            var order = _assignments.InFence(fence.Id).Count;
+            foreach (var path in files)
+            {
+                if (_assignments.Find(path)?.FenceId == fence.Id) continue;
+                _assignments.Assign(path, fence.Id, order++, manual: false);
+            }
+        }
+
+        _sync.SyncToExplorer(_config, _assignments, _space);
+        Save();
+        SyncAndCompose();
+
+        _firstRun.MarkOnboardingShown();
+        _firstRun.MarkOrganized();
+
+        return result;
+    }
+
     // ===== 同步与合成 =====
 
     /// <summary>

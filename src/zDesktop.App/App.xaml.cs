@@ -119,6 +119,18 @@ public partial class App : Application
             return;
         }
 
+        // 0a-2. 卸载资产处置 —— 供卸载程序调用：
+        //       zDesktop.App.exe --uninstall-cleanup keep|folders|restore
+        var cleanupArg = e.Args.FirstOrDefault(a =>
+            a.StartsWith("--uninstall-cleanup", StringComparison.OrdinalIgnoreCase));
+        if (cleanupArg != null)
+        {
+            RunUninstallCleanup(e.Args);
+            _isShuttingDown = true;
+            Shutdown();
+            return;
+        }
+
         // 0b. 异常退出检测 —— 上次非正常退出（含 taskkill /F）时按账本还原。
         //     taskkill 触发 TerminateProcess，进程内钩子一律不执行，
         //     因此只能靠「动手前落盘的账本」在下次启动时兜底。
@@ -173,6 +185,10 @@ public partial class App : Application
 
         // 8. 分区开始工作（焦点驱动轮询 + 首次归位与合成）
         _fences?.Start();
+
+        // 9. 首次运行引导（§六）—— 延后到界面都就绪之后再弹
+        Current.Dispatcher.BeginInvoke(new Action(ShowOnboardingIfNeeded),
+            System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         if (_fences is { IsAvailable: true, IsBlockedByAutoArrange: true })
         {
             _tray?.ShowBalloon("zDesktop",
@@ -487,9 +503,8 @@ public partial class App : Application
         if (answer != System.Windows.MessageBoxResult.OK) return;
 
         var result = _fences.Organize();
-        _tray.ShowBalloon("zDesktop", result.Succeeded
-            ? $"已整理 {result.AssignedCount} 个文件。可从托盘菜单「分区 → 撤销上次整理」还原。"
-            : "整理已中止：快照保存失败，未执行任何修改。");
+        if (result.Succeeded) ShowUndoToast(result.AssignedCount);
+        else _tray.ShowBalloon("zDesktop", "整理已中止：快照保存失败，未执行任何修改。");
     }
 
     /// <summary>撤销最近一次整理</summary>
@@ -501,6 +516,147 @@ public partial class App : Application
         _tray.ShowBalloon("zDesktop", restored >= 0
             ? $"已撤销，还原 {restored} 个图标位置。"
             : "没有可撤销的整理记录。");
+    }
+
+    /// <summary>
+    /// 卸载资产处置（设计案 v3.1 §6.2）。
+    ///
+    /// <para>分区一旦消失，桌面上几十个图标会散落一地，用户会觉得「这软件把我桌面搞乱了」
+    /// —— 即使技术上我们一个文件都没删。卸载体验决定用户对产品的最后印象。</para>
+    /// </summary>
+    private void RunUninstallCleanup(string[] args)
+    {
+        var modeText = args.SkipWhile(a => !a.StartsWith("--uninstall-cleanup", StringComparison.OrdinalIgnoreCase))
+                           .Skip(1).FirstOrDefault() ?? "keep";
+
+        var mode = modeText.ToLowerInvariant() switch
+        {
+            "folders" => DispositionMode.MoveIntoFolders,
+            "restore" => DispositionMode.RestoreOriginalLayout,
+            _ => DispositionMode.KeepAsIs, // 默认保持现状：伤害最小
+        };
+
+        Console.WriteLine($"[Uninstall] 资产处置方式: {mode}");
+
+        try
+        {
+            using var icons = new NativeIconController();
+            var resolver = new DesktopItemResolver();
+            var disposition = new UninstallDisposition(
+                new FenceStore(), new FenceSnapshotStore(), icons, resolver);
+
+            var result = disposition.Execute(mode);
+            Console.WriteLine($"[Uninstall] 完成：创建文件夹 {result.FoldersCreated}，" +
+                              $"移动文件 {result.FilesMoved}，还原图标 {result.IconsRestored}");
+
+            foreach (var f in result.Failures) Console.WriteLine($"[Uninstall] {f}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[Uninstall] 处置失败: {ex.Message}");
+        }
+
+        // 无论处置结果如何，系统状态都必须还原（壁纸、图标层等）
+        _restoreJournal.RestoreAll();
+        DesktopRestore.ClearRunningFlag();
+    }
+
+    // ===== 首次运行引导（M4，设计案 v3.1 §六）=====
+
+    /// <summary>
+    /// 首次运行时弹一张非模态引导卡片。
+    ///
+    /// <para>绝不用模态对话框：那会在用户还没看清桌面之前就挡住屏幕，
+    /// 与「装上之后桌面一个像素都不变」的观感直接冲突。</para>
+    /// </summary>
+    private void ShowOnboardingIfNeeded()
+    {
+        if (_fences is not { ShouldShowOnboarding: true }) return;
+
+        var fileCount = _fences.DesktopFileCount;
+        if (fileCount < 4)
+        {
+            // 桌面本来就干净，没必要打扰
+            _fences.MarkOnboardingShown();
+            return;
+        }
+
+        var proposal = _fences.BuildProposal();
+        if (proposal.Fences.Count == 0)
+        {
+            // 文件都不属于任何默认类别，建了也是空框
+            _fences.MarkOnboardingShown();
+            return;
+        }
+
+        // 两个数字相同时说「其中 N 个」读着别扭，分开措辞
+        var message = proposal.UncategorizedCount == 0
+            ? $"你的桌面有 {fileCount} 个项目，可以归入 {proposal.Fences.Count} 个分区。要看看整理后的效果吗？"
+            : $"你的桌面有 {fileCount} 个项目，其中 {proposal.TotalFiles} 个可以归入 {proposal.Fences.Count} 个分区。要看看效果吗？";
+
+        ToastWindow.Show(
+            "zDesktop 已在后台运行",
+            message,
+            new[]
+            {
+                new ToastAction("以后再说", false, () => _fences.MarkOnboardingShown()),
+                new ToastAction("预览效果", true, () => ShowProposalPreview(proposal)),
+            });
+    }
+
+    /// <summary>
+    /// 展示方案预览 —— 桌面上画出虚线框，但**不创建任何分区、不移动任何图标**。
+    /// </summary>
+    private void ShowProposalPreview(zDesktop.Core.Fences.OrganizeProposal proposal)
+    {
+        if (_fences == null) return;
+
+        _fences.MarkOnboardingShown();
+        _fences.ShowProposalPreview(proposal);
+
+        var detail = string.Join("、", proposal.Fences.Select(f => $"{f.Name} {f.Files.Count} 个"));
+
+        ToastWindow.Show(
+            "整理预览",
+            $"将创建 {proposal.Fences.Count} 个分区：{detail}。\n" +
+            $"桌面上的虚线框就是它们的位置。现在还没有任何改动。",
+            new[]
+            {
+                new ToastAction("取消", false, () => _fences.ClearProposalPreview()),
+                new ToastAction("应用", true, () => ApplyProposal(proposal)),
+            });
+    }
+
+    /// <summary>应用整理方案，随后给出可撤销的提示</summary>
+    private void ApplyProposal(zDesktop.Core.Fences.OrganizeProposal proposal)
+    {
+        if (_fences == null) return;
+
+        var result = _fences.ApplyProposal(proposal);
+
+        if (!result.Succeeded)
+        {
+            ToastWindow.Show("整理已中止",
+                "保存快照失败，未执行任何修改。桌面保持原样。",
+                new[] { new ToastAction("知道了", true, () => { }) });
+            return;
+        }
+
+        ShowUndoToast(result.AssignedCount);
+    }
+
+    /// <summary>
+    /// 整理完成提示，30 秒内可一键撤销（§3.1）。
+    /// 倒计时结束只是关掉提示，快照仍然保留，随时可从托盘撤销。
+    /// </summary>
+    private void ShowUndoToast(int assignedCount)
+    {
+        ToastWindow.Show(
+            "已整理",
+            $"{assignedCount} 个文件已归入分区。不满意可以立刻撤销，\n" +
+            "之后也能随时从托盘菜单「分区 → 撤销上次整理」还原。",
+            new[] { new ToastAction("撤销", false, () => OnUndoOrganize()) },
+            autoCloseSeconds: 30);
     }
 
     /// <summary>分区重命名 —— 弹输入框</summary>

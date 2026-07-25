@@ -7,13 +7,14 @@ namespace zDesktop.Core.Fences;
 ///
 /// 规则匹配只依赖这几项，不直接碰文件系统 —— 保证归属逻辑可纯函数化单测（T1-3）。
 /// </summary>
-public sealed record FileSnapshot(string Path, string Name, string Extension, DateTime ModifiedAt)
+public sealed record FileSnapshot(string Path, string Name, string Extension, DateTime ModifiedAt, bool IsDirectory = false)
 {
-    public static FileSnapshot Of(string path, DateTime modifiedAt)
+    public static FileSnapshot Of(string path, DateTime modifiedAt, bool isDirectory = false)
         => new(path,
                System.IO.Path.GetFileName(path),
                System.IO.Path.GetExtension(path),
-               modifiedAt);
+               modifiedAt,
+               isDirectory);
 }
 
 /// <summary>

@@ -230,6 +230,98 @@ public sealed class FenceLayer : Canvas
 
     private void HideCreationPreview() => _creationPreview.Visibility = Visibility.Collapsed;
 
+    // ===== 方案预览（M4 首次运行引导）=====
+
+    private readonly List<UIElement> _proposalVisuals = new();
+
+    /// <summary>
+    /// 以虚线框预演建议创建的分区。
+    ///
+    /// <para><b>只画不写</b> —— 这是「用户点应用之前，桌面一个像素都不变」
+    /// （设计案 v3.1 §二 原则 3）的具体落实：预览期间不创建任何分区、
+    /// 不移动任何图标、不落盘任何配置。</para>
+    /// </summary>
+    public void ShowProposalPreview(IReadOnlyList<(FenceRect Rect, string Name, string Color, int FileCount)> items)
+    {
+        ClearProposalPreview();
+
+        foreach (var (rect, name, color, fileCount) in items)
+        {
+            var accent = ParseColor(color);
+
+            var box = new Border
+            {
+                Width = rect.Width,
+                Height = rect.Height,
+                CornerRadius = Theme.ControlRadius,
+                Background = new SolidColorBrush(Color.FromArgb(40, accent.R, accent.G, accent.B)),
+                BorderBrush = new SolidColorBrush(accent),
+                BorderThickness = new Thickness(2),
+                IsHitTestVisible = false,
+                Child = new TextBlock
+                {
+                    Text = $"{name}\n{fileCount} 个文件",
+                    Foreground = Theme.TextPrimary,
+                    FontFamily = PreviewFont,
+                    FontSize = 13,
+                    TextAlignment = TextAlignment.Center,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                },
+            };
+
+            // 虚线边框需要单独一层 Rectangle，Border 不支持 StrokeDashArray
+            var dashes = new Rectangle
+            {
+                Width = rect.Width,
+                Height = rect.Height,
+                RadiusX = 10,
+                RadiusY = 10,
+                Stroke = new SolidColorBrush(accent),
+                StrokeThickness = 2,
+                StrokeDashArray = new DoubleCollection { 6, 4 },
+                IsHitTestVisible = false,
+            };
+
+            foreach (var el in new UIElement[] { box, dashes })
+            {
+                SetLeft(el, rect.X);
+                SetTop(el, rect.Y);
+                Children.Add(el);
+                _proposalVisuals.Add(el);
+            }
+        }
+    }
+
+    /// <summary>清除方案预览</summary>
+    public void ClearProposalPreview()
+    {
+        foreach (var el in _proposalVisuals) Children.Remove(el);
+        _proposalVisuals.Clear();
+    }
+
+    private static readonly System.Windows.Media.FontFamily PreviewFont =
+        new("Microsoft YaHei UI, Microsoft YaHei, Segoe UI");
+
+    private static Color ParseColor(string hex)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(hex) && hex.StartsWith('#') && hex.Length == 7)
+            {
+                return Color.FromRgb(
+                    Convert.ToByte(hex.Substring(1, 2), 16),
+                    Convert.ToByte(hex.Substring(3, 2), 16),
+                    Convert.ToByte(hex.Substring(5, 2), 16));
+            }
+        }
+        catch
+        {
+            // 配色格式错误用品牌色兜底
+        }
+        return Color.FromRgb(0x6c, 0x5c, 0xe7);
+    }
+
     /// <summary>由两个角点求规范化矩形（支持向任意方向拖拽）</summary>
     private static FenceRect MakeRect(Point a, Point b) => new()
     {
