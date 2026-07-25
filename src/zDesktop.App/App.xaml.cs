@@ -96,15 +96,32 @@ public partial class App : Application
     /// <summary>是否正在退出程序（区分主窗口隐藏与真正关闭）</summary>
     private bool _isShuttingDown;
 
+    /// <summary>系统状态还原账本 —— 强杀/崩溃/卸载三条路径共用</summary>
+    private readonly RestoreJournal _restoreJournal = RestoreJournal.Load();
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        // 0. 异常退出检测 — 上次如果非正常退出，先恢复原生桌面图标层
+        // 0a. 还原模式 —— 供卸载程序调用：zDesktop.App.exe --restore
+        //     只还原系统状态然后立即退出，不启动任何 UI
+        if (e.Args.Any(a => string.Equals(a, "--restore", StringComparison.OrdinalIgnoreCase)))
+        {
+            Console.WriteLine("[App] 还原模式：正在还原系统状态并退出");
+            _restoreJournal.RestoreAll();
+            DesktopRestore.ClearRunningFlag();
+            _isShuttingDown = true;
+            Shutdown();
+            return;
+        }
+
+        // 0b. 异常退出检测 —— 上次非正常退出（含 taskkill /F）时按账本还原。
+        //     taskkill 触发 TerminateProcess，进程内钩子一律不执行，
+        //     因此只能靠「动手前落盘的账本」在下次启动时兜底。
         if (DesktopRestore.WasAbnormalExit())
         {
-            Console.WriteLine("[App] 检测到上次异常退出，正在恢复原生桌面图标层...");
-            DesktopRestore.RestoreNativeDesktopIcons();
+            Console.WriteLine("[App] 检测到上次异常退出，按还原账本恢复系统状态…");
+            _restoreJournal.RestoreAll();
         }
 
         // 安装崩溃保护 — 捕获未处理异常/系统信号，确保恢复原生桌面
@@ -413,7 +430,9 @@ public partial class App : Application
 
         if (_zdesktopIconMode)
         {
-            // zDesktop 渲染模式：隐藏原生，显示自渲染图标层
+            // zDesktop 渲染模式：隐藏原生，显示自渲染图标层。
+            // 先记账再动手 —— 若此刻被强杀，下次启动才能知道要还原什么。
+            _restoreJournal.MarkNativeIconsHidden();
             _iconLayer.Visibility = Visibility.Visible;
             _overlay.HideNativeIcons();
         }
@@ -422,6 +441,7 @@ public partial class App : Application
             // 系统原生模式：显示原生，隐藏自渲染图标层
             _iconLayer.Visibility = Visibility.Collapsed;
             _overlay.ShowNativeIcons();
+            _restoreJournal.ClearNativeIconsHidden();
         }
 
         _tray.UpdateIconModeCheck(_zdesktopIconMode);
@@ -444,7 +464,11 @@ public partial class App : Application
     /// </summary>
     private void OnOverlayReady()
     {
-        if (_zdesktopIconMode) _overlay?.HideNativeIcons();
+        if (_zdesktopIconMode)
+        {
+            _restoreJournal.MarkNativeIconsHidden(); // 先记账再动手
+            _overlay?.HideNativeIcons();
+        }
         // 标记 zDesktop 正在运行（用于下次启动检测异常退出）
         DesktopRestore.MarkRunning();
     }
@@ -750,10 +774,10 @@ public partial class App : Application
         }
         catch
         {
-            // 崩溃路径上不允许再抛异常，兜底走无窗口依赖的还原
+            // 崩溃路径上不允许再抛异常，下面的账本还原是无窗口依赖的兜底
         }
 
-        DesktopRestore.RestoreNativeDesktopIcons();
+        _restoreJournal.RestoreAll();
         DesktopRestore.ClearRunningFlag();
     }
 
@@ -771,6 +795,7 @@ public partial class App : Application
         // 还原原生桌面图标层 —— 无论此前是否切到过自渲染模式都执行，
         // 保证零破坏契约在退出路径上一定兑现
         _overlay?.ShowNativeIcons();
+        _restoreJournal.ClearNativeIconsHidden();
         DesktopRestore.ClearRunningFlag();
 
         _tray?.Dispose();
