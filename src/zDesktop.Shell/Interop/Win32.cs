@@ -38,6 +38,17 @@ public static class Win32
     // ===== 系统参数 =====
     public const int SPI_GETWORKAREA = 0x0030;
 
+    // ===== 虚拟屏（多屏包围盒）=====
+
+    /// <summary>虚拟屏左上角 X。副屏位于主屏左侧时为负值。</summary>
+    public const int SM_XVIRTUALSCREEN = 76;
+    public const int SM_YVIRTUALSCREEN = 77;
+    public const int SM_CXVIRTUALSCREEN = 78;
+    public const int SM_CYVIRTUALSCREEN = 79;
+
+    [DllImport("user32.dll")]
+    public static extern int GetSystemMetrics(int nIndex);
+
     /// <summary>RECT 结构 — 窗口/工作区矩形</summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT
