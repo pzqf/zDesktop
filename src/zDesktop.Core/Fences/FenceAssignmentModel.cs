@@ -296,4 +296,19 @@ public sealed class FenceAssignmentModel
 
     /// <summary>导出为可持久化的列表</summary>
     public List<FenceAssignment> ToList() => _byPath.Values.ToList();
+
+    /// <summary>
+    /// 整体替换全部归属 —— 撤销到快照时使用。
+    ///
+    /// 必须整体替换而非逐条合并：撤销的语义是「回到那一刻的状态」，
+    /// 逐条合并会把操作后新增的归属残留下来。
+    /// </summary>
+    public void ReplaceAll(IEnumerable<FenceAssignment> assignments)
+    {
+        _byPath.Clear();
+        foreach (var a in assignments)
+        {
+            if (!string.IsNullOrEmpty(a.Path)) _byPath[a.Path] = a;
+        }
+    }
 }
