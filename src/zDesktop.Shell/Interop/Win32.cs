@@ -178,6 +178,98 @@ public static class Win32
 
     public const uint MSGFLT_ALLOW = 1;
 
+    // ===== 桌面 ListView 跨进程控制（分区功能地基，M2 spike 验证）=====
+
+    private const int LVM_FIRST = 0x1000;
+
+    public const int LVM_GETITEMCOUNT = LVM_FIRST + 4;
+    /// <summary>取图标坐标 —— lParam 指向 POINT（须为 explorer 进程内的地址）</summary>
+    public const int LVM_GETITEMPOSITION = LVM_FIRST + 16;
+    /// <summary>设图标坐标（32 位版，lParam 指向 POINT）。多屏虚拟桌面必须用它而非 16 位打包版。</summary>
+    public const int LVM_SETITEMPOSITION32 = LVM_FIRST + 49;
+    /// <summary>取表项文本 —— lParam 指向 LVITEMW</summary>
+    public const int LVM_GETITEMTEXTW = LVM_FIRST + 115;
+    /// <summary>取图标网格间距 —— 返回 MAKELONG(cx, cy)</summary>
+    public const int LVM_GETITEMSPACING = LVM_FIRST + 51;
+    public const int LVM_GETEXTENDEDLISTVIEWSTYLE = LVM_FIRST + 55;
+
+    public const int LVIF_TEXT = 0x0001;
+
+    /// <summary>自动排列图标（窗口样式）—— 开启时分区无法工作</summary>
+    public const int LVS_AUTOARRANGE = 0x0100;
+
+    /// <summary>
+    /// 将图标与网格对齐（**扩展**样式，GWL_STYLE 里查不到）。
+    /// 开启时写入坐标会被吸附到最近格点。
+    /// </summary>
+    public const int LVS_EX_SNAPTOGRID = 0x00080000;
+
+    /// <summary>
+    /// LVITEMW 的 x64 布局。字段顺序必须与 commctrl.h 一致 ——
+    /// 错一个字节就会读到垃圾，甚至让 explorer.exe 崩溃。
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LVITEMW
+    {
+        public uint mask;
+        public int iItem;
+        public int iSubItem;
+        public uint state;
+        public uint stateMask;
+        public IntPtr pszText;
+        public int cchTextMax;
+        public int iImage;
+        public IntPtr lParam;
+        public int iIndent;
+        public int iGroupId;
+        public uint cColumns;
+        public IntPtr puColumns;
+        public IntPtr piColFmt;
+        public int iGroup;
+    }
+
+    /// <summary>
+    /// 带超时的消息发送。
+    /// 跨进程操作**必须**用它而非 SendMessage：Explorer 卡死时
+    /// SendMessage 会无限期阻塞调用线程，把 zDesktop 一起拖死。
+    /// </summary>
+    [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    public static extern IntPtr SendMessageTimeout(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam,
+        uint flags, int timeoutMs, out IntPtr result);
+
+    /// <summary>目标线程挂起时立即返回，不等待超时</summary>
+    public const uint SMTO_ABORTIFHUNG = 0x0002;
+
+    // ===== 跨进程内存 =====
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr OpenProcess(uint access, bool inherit, uint pid);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool CloseHandle(IntPtr h);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr addr, IntPtr size, uint allocType, uint protect);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr addr, IntPtr size, uint freeType);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool ReadProcessMemory(IntPtr hProcess, IntPtr addr, IntPtr buffer, IntPtr size, out IntPtr read);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr addr, IntPtr buffer, IntPtr size, out IntPtr written);
+
+    public const uint PROCESS_VM_OPERATION = 0x0008;
+    public const uint PROCESS_VM_READ = 0x0010;
+    public const uint PROCESS_VM_WRITE = 0x0020;
+    public const uint PROCESS_QUERY_INFORMATION = 0x0400;
+
+    public const uint MEM_COMMIT = 0x1000;
+    public const uint MEM_RESERVE = 0x2000;
+    public const uint MEM_RELEASE = 0x8000;
+    public const uint PAGE_READWRITE = 0x04;
+
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter,
         int X, int Y, int cx, int cy, uint uFlags);
