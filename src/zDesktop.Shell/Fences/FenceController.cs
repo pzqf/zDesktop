@@ -28,6 +28,21 @@ public sealed class FenceController : IDisposable
     private readonly List<FenceLayer> _layers = new();
     private DispatcherTimer? _pollTimer;
 
+    /// <summary>
+    /// 合成去抖。
+    ///
+    /// <para>换壁纸会触发 Windows 自带的淡入过渡，每次都是一次可感知的闪烁。
+    /// 连续操作（拖完接着缩放、改完名再折叠）若每步都合成，就会连闪好几下。
+    /// 合并到最后一次再做。</para>
+    /// </summary>
+    private DispatcherTimer? _composeDebounce;
+
+    /// <summary>
+    /// 上次合成时的分区布局指纹。
+    /// 内容没变就不重设壁纸 —— 没有变化的重设纯粹是白闪一下。
+    /// </summary>
+    private string _lastComposedSignature = string.Empty;
+
     private FenceConfig _config = new();
     private FenceAssignmentModel _assignments = new();
     private FenceCoordinateSpace _space = null!;
@@ -113,6 +128,24 @@ public sealed class FenceController : IDisposable
 
     /// <summary>需要弹出重命名输入时触发（UI 由 App 层提供）</summary>
     public event Action<Fence>? RenameRequested;
+
+    /// <summary>
+    /// 摘掉全部分区层（覆盖层重建前调用）。
+    ///
+    /// 不摘的话 <see cref="_layers"/> 会累积已销毁的旧层，
+    /// <see cref="EditMode"/> 读到的是过期层的状态，切换编辑模式随之错乱。
+    /// </summary>
+    public void DetachLayers()
+    {
+        foreach (var layer in _layers)
+        {
+            layer.ResetInteraction();
+            layer.FenceCreateRequested -= OnFenceCreateRequested;
+            layer.FencesChanged -= OnFencesChanged;
+            layer.FenceDeleteRequested -= DeleteFence;
+        }
+        _layers.Clear();
+    }
 
     /// <summary>开始工作：焦点驱动轮询 + 首次归位与合成</summary>
     public void Start()
@@ -267,7 +300,10 @@ public sealed class FenceController : IDisposable
 
     // ===== 同步与合成 =====
 
-    /// <summary>写回图标坐标并重新合成分区背景</summary>
+    /// <summary>
+    /// 写回图标坐标并重新合成分区背景。
+    /// 图标归位立即执行，壁纸合成走去抖以避免连续闪烁。
+    /// </summary>
     public void SyncAndCompose()
     {
         if (!IsAvailable) return;
@@ -275,7 +311,7 @@ public sealed class FenceController : IDisposable
         try
         {
             _sync.SyncToExplorer(_config, _assignments, _space);
-            Compose();
+            ScheduleCompose();
             BackgroundInvalidated?.Invoke();
         }
         catch (Exception ex)
@@ -284,10 +320,47 @@ public sealed class FenceController : IDisposable
         }
     }
 
+    /// <summary>把合成推迟到操作停止之后，连续编辑只合成最后一次</summary>
+    private void ScheduleCompose()
+    {
+        _composeDebounce ??= CreateComposeDebounce();
+        _composeDebounce.Stop();
+        _composeDebounce.Start();
+    }
+
+    private DispatcherTimer CreateComposeDebounce()
+    {
+        var timer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(350),
+        };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            Compose();
+        };
+        return timer;
+    }
+
+    /// <summary>分区布局指纹 —— 只要它没变，重新合成出来的图就是一样的</summary>
+    private string BuildSignature()
+    {
+        var parts = _config.Fences
+            .OrderBy(f => f.Id, StringComparer.Ordinal)
+            .Select(f => $"{f.Id}|{f.MonitorKey}|{f.Rect.X:F1},{f.Rect.Y:F1},{f.Rect.Width:F1},{f.Rect.Height:F1}|{f.Color}|{f.Collapsed}");
+
+        return string.Join(";", parts);
+    }
+
     /// <summary>逐屏合成分区背景</summary>
     private void Compose()
     {
         if (!_compositor.IsAvailable) return;
+
+        // 布局没变就别重设壁纸 —— 那只会白闪一下
+        var signature = BuildSignature();
+        if (signature == _lastComposedSignature) return;
+        _lastComposedSignature = signature;
 
         using var surface = new WallpaperSurface();
         foreach (var mw in surface.Enumerate())
@@ -350,6 +423,8 @@ public sealed class FenceController : IDisposable
     public void Dispose()
     {
         StopPolling();
+        _composeDebounce?.Stop();
+        DetachLayers();
         _focus.Dispose();
         Save();
 

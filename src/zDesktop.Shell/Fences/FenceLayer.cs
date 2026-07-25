@@ -33,6 +33,15 @@ public sealed class FenceLayer : Canvas
     private bool _creating;
     private bool _editMode;
 
+    /// <summary>
+    /// 是否有拖拽/缩放/框选正在进行。
+    ///
+    /// 为 true 时命中测试无条件返回 true —— 覆盖层平时靠 <c>HTTRANSPARENT</c> 透传，
+    /// 而那会让 Win32 把光标移出控件后的鼠标消息直接投给下层窗口，
+    /// WPF 的 CaptureMouse 拦不住，表现为「拖动不跟手」。
+    /// </summary>
+    private bool _interacting;
+
     /// <summary>本层所属显示器的稳定标识</summary>
     public string MonitorKey { get; set; } = string.Empty;
 
@@ -63,7 +72,10 @@ public sealed class FenceLayer : Canvas
             Background = value ? new SolidColorBrush(Color.FromArgb(1, 0, 0, 0)) : null;
 
             foreach (var v in _visuals) v.SetEditMode(value);
-            if (!value) HideCreationPreview();
+
+            // 退出时必须彻底复位：残留的拖拽状态或鼠标捕获会让整窗一直停止透传，
+            // 桌面图标就再也点不动了 —— 这是零破坏契约的直接违反。
+            if (!value) ResetInteraction();
         }
     }
 
@@ -90,6 +102,9 @@ public sealed class FenceLayer : Canvas
     /// <summary>按模型重建全部分区外观</summary>
     public void Rebuild(IEnumerable<Fence> fences)
     {
+        // 先中止旧视觉上的交互，否则被销毁的控件仍持有鼠标捕获
+        ResetInteraction();
+
         foreach (var v in _visuals) Children.Remove(v);
         _visuals.Clear();
 
@@ -99,8 +114,7 @@ public sealed class FenceLayer : Canvas
                 continue; // 不属于本屏
 
             var visual = new FenceVisual(fence);
-            visual.Moved += (_, _, _) => { };            // 拖动过程中不落盘，松手才提交
-            visual.Resized += (_, _, _) => { };
+            visual.InteractingChanged += (_, active) => _interacting = active;
             visual.EditCommitted += _ => FencesChanged?.Invoke();
             visual.CollapseToggled += _ => FencesChanged?.Invoke();
             visual.RenameRequested += v => FenceRenameRequested?.Invoke(v.Fence);
@@ -127,13 +141,32 @@ public sealed class FenceLayer : Canvas
     /// </summary>
     public bool HitTest(Point point)
     {
-        if (_editMode) return true;
+        // 拖拽进行中必须无条件命中，否则光标一移出标题栏就收不到鼠标消息了
+        if (_interacting || _editMode) return true;
 
         foreach (var v in _visuals)
         {
             if (v.HitTest(point)) return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// 彻底复位交互状态：中止所有分区的拖拽、结束框选、释放鼠标捕获。
+    /// 退出编辑模式与重建分区时都必须调用。
+    /// </summary>
+    public void ResetInteraction()
+    {
+        foreach (var v in _visuals) v.AbortInteraction();
+
+        if (_creating)
+        {
+            _creating = false;
+            ReleaseMouseCapture();
+        }
+
+        _interacting = false;
+        HideCreationPreview();
     }
 
     // ===== 编辑模式：拖拽新建 =====
@@ -149,6 +182,7 @@ public sealed class FenceLayer : Canvas
 
         _createStart = p;
         _creating = true;
+        _interacting = true;
         CaptureMouse();
 
         _creationPreview.Visibility = Visibility.Visible;
@@ -171,6 +205,7 @@ public sealed class FenceLayer : Canvas
         if (!_creating) return;
 
         _creating = false;
+        _interacting = false;
         ReleaseMouseCapture();
 
         var end = e.GetPosition(this);

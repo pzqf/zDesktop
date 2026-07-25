@@ -66,6 +66,19 @@ public sealed class FenceVisual : Canvas
     /// <summary>拖拽/缩放结束（用于触发一次落盘与重新合成）</summary>
     public event Action<FenceVisual>? EditCommitted;
 
+    /// <summary>
+    /// 拖拽/缩放开始与结束。
+    ///
+    /// <para>覆盖层靠 <c>WM_NCHITTEST</c> 返回 <c>HTTRANSPARENT</c> 实现鼠标透传，
+    /// 而这会让 WPF 的 <c>CaptureMouse()</c> 形同虚设 —— 光标一旦移出标题栏那 32 像素，
+    /// Win32 就把后续鼠标消息直接投给下层窗口，我们连 WM_MOUSEMOVE 都收不到，
+    /// 表现就是「拖动不跟手」。</para>
+    ///
+    /// <para>因此拖拽期间必须让命中测试无条件返回 true，把整窗暂时变成不透传。
+    /// 这两个事件就是通知 <see cref="FenceLayer"/> 切换该状态用的。</para>
+    /// </summary>
+    public event Action<FenceVisual, bool>? InteractingChanged;
+
     public FenceVisual(Fence fence)
     {
         Fence = fence;
@@ -156,11 +169,28 @@ public sealed class FenceVisual : Canvas
         ApplyGeometry();
     }
 
+    private bool _editMode;
+
     /// <summary>编辑模式下显示轮廓与缩放角</summary>
     public void SetEditMode(bool editing)
     {
-        _outline.Visibility = editing && !Fence.Collapsed ? Visibility.Visible : Visibility.Collapsed;
-        _grip.Visibility = editing && !Fence.Collapsed ? Visibility.Visible : Visibility.Collapsed;
+        _editMode = editing;
+        UpdateAdornerVisibility();
+    }
+
+    /// <summary>
+    /// 轮廓在「编辑模式」或「正在拖拽」时显示。
+    ///
+    /// 拖拽期间必须显示：分区底色是合成在壁纸里的，松手才会重绘，
+    /// 拖动过程中只有标题栏在动，没有轮廓的话用户看不出分区整体挪到哪了。
+    /// </summary>
+    private void UpdateAdornerVisibility()
+    {
+        var interacting = _dragging || _resizing;
+        var show = (_editMode || interacting) && !Fence.Collapsed;
+
+        _outline.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        _grip.Visibility = _editMode && !Fence.Collapsed ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>按 Fence 模型刷新位置、尺寸与文字</summary>
@@ -224,6 +254,7 @@ public sealed class FenceVisual : Canvas
         {
             Fence.Collapsed = !Fence.Collapsed;
             ApplyGeometry();
+            UpdateAdornerVisibility();
             CollapseToggled?.Invoke(this);
             e.Handled = true;
             return;
@@ -231,6 +262,8 @@ public sealed class FenceVisual : Canvas
 
         _dragStart = e.GetPosition(Parent as UIElement);
         _dragging = true;
+        UpdateAdornerVisibility();
+        InteractingChanged?.Invoke(this, true); // 先让整窗停止透传，否则收不到后续 MouseMove
         _titleBar.CaptureMouse();
         e.Handled = true;
     }
@@ -257,7 +290,9 @@ public sealed class FenceVisual : Canvas
     {
         if (!_dragging) return;
         _dragging = false;
+        UpdateAdornerVisibility();
         _titleBar.ReleaseMouseCapture();
+        InteractingChanged?.Invoke(this, false);
         // 松手才落盘与重新合成 —— 拖动过程中每帧合成会掉帧（§4.3 实测 4K 37.8ms）
         EditCommitted?.Invoke(this);
         e.Handled = true;
@@ -297,6 +332,8 @@ public sealed class FenceVisual : Canvas
     {
         _dragStart = e.GetPosition(Parent as UIElement);
         _resizing = true;
+        UpdateAdornerVisibility();
+        InteractingChanged?.Invoke(this, true);
         _grip.CaptureMouse();
         e.Handled = true;
     }
@@ -322,9 +359,29 @@ public sealed class FenceVisual : Canvas
     {
         if (!_resizing) return;
         _resizing = false;
+        UpdateAdornerVisibility();
         _grip.ReleaseMouseCapture();
+        InteractingChanged?.Invoke(this, false);
         EditCommitted?.Invoke(this);
         e.Handled = true;
+    }
+
+    /// <summary>
+    /// 强制中止进行中的拖拽/缩放并释放捕获。
+    ///
+    /// 退出编辑模式、分区被删除、覆盖层重建时调用 ——
+    /// 拖拽状态或鼠标捕获若残留，整窗会一直停止透传，桌面图标就再也点不动了。
+    /// </summary>
+    public void AbortInteraction()
+    {
+        if (!_dragging && !_resizing) return;
+
+        _dragging = false;
+        _resizing = false;
+        UpdateAdornerVisibility();
+        _titleBar.ReleaseMouseCapture();
+        _grip.ReleaseMouseCapture();
+        InteractingChanged?.Invoke(this, false);
     }
 
     private static Color ParseColor(string hex)

@@ -298,6 +298,9 @@ public partial class App : Application
             overlay.Window.ExplorerRestarted -= OnExplorerRestarted;
             overlay.Window.Close();
         }
+        // 先从分区总控摘掉旧层，否则它会持有已销毁的层，编辑模式状态随之错乱
+        _fences?.DetachLayers();
+
         _overlays.Clear();
         _fenceLayers.Clear();
         _primary = null;
