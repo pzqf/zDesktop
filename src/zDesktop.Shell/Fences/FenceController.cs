@@ -330,9 +330,12 @@ public sealed class FenceController : IDisposable
 
     private DispatcherTimer CreateComposeDebounce()
     {
+        // 120ms：足以把「拖完接着缩放」这类连续操作合并成一次，
+        // 又不至于让松手到底色跟上的延迟变得可感知。
+        // 实测 350ms 时松手后要等约 0.6 秒底色才跳到新位置，读起来就像闪了一下。
         var timer = new DispatcherTimer(DispatcherPriority.Background)
         {
-            Interval = TimeSpan.FromMilliseconds(350),
+            Interval = TimeSpan.FromMilliseconds(120),
         };
         timer.Tick += (_, _) =>
         {

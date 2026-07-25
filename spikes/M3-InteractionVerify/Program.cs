@@ -101,7 +101,24 @@ internal static class Program
         Check(!IsOurOverlay(afterDrag), "拖动结束后空白桌面恢复透传",
             "交互状态未复位，整窗仍在拦截鼠标 —— 桌面图标点不动");
 
-        Section("5. 还原分区位置");
+        Section("5. 闪烁量化（松手后重设壁纸的过渡）");
+
+        // 再拖一次，松手后立刻连拍，量化淡入过渡
+        Info("再拖一次并连拍采样…");
+        var probeX = (int)(endX + 420 / 2);
+        var probeY = (int)(endY + 16);
+        MoveTo(probeX, probeY);
+        Thread.Sleep(150);
+        SendMouse(N.MOUSEEVENTF_LEFTDOWN);
+        Thread.Sleep(120);
+        for (var i = 1; i <= 12; i++) { MoveTo(probeX - 10 * i, probeY - 6 * i); Thread.Sleep(16); }
+        Thread.Sleep(150);
+        SendMouse(N.MOUSEEVENTF_LEFTUP);
+
+        // 采样区域取分区所在的一片桌面，避开任务栏与组件
+        FlickerMeter.Measure(new System.Drawing.Rectangle(300, 150, 640, 400), durationMs: 2200);
+
+        Section("6. 还原分区位置");
 
         WriteFirstFenceOrigin(startX, startY);
         Info($"已把分区位置写回 ({startX},{startY})（重启 zDesktop 后生效）");
