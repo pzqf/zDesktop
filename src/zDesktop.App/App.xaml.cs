@@ -959,6 +959,7 @@ public partial class App : Application
                 Width = entry.Width,
                 Height = entry.Height,
                 IsVisible = entry.IsVisible,
+                Collapsed = entry.Collapsed,
                 Config = entry.Config ?? new(),
             });
         }

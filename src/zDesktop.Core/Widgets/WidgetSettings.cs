@@ -30,6 +30,12 @@ public class WidgetSettings
     /// <summary>是否可见</summary>
     public bool IsVisible { get; set; } = true;
 
+    /// <summary>
+    /// 是否折叠为标题条（设计案 v3.1 §3.1「折叠为图标」）。
+    /// 折叠时 <see cref="Height"/> 仍保存展开时的高度，展开即还原。
+    /// </summary>
+    public bool Collapsed { get; set; }
+
     /// <summary>组件配置（键值对，键对应 WidgetConfigField.Key，值为 JSON 原始类型）</summary>
     public Dictionary<string, object?> Config { get; set; } = new();
 }

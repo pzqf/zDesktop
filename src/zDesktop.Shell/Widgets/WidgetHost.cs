@@ -98,6 +98,12 @@ public class WidgetHost : Canvas
         Canvas.SetLeft(container, settings.X);
         Canvas.SetTop(container, settings.Y);
 
+        // 折叠状态必须用 Restore 而非 setter：此刻容器还没测量过，
+        // ActualHeight 为 0，setter 会把展开高度记成 0 导致再也展不开
+        if (settings.Collapsed)
+            container.RestoreCollapsed(true, settings.Height);
+
+        container.CollapsedChanged += OnContainerCollapsed;
         container.CloseRequested += OnWidgetClose;
         container.PositionChanged += OnContainerMoved;
         container.WidgetSizeChanged += OnContainerResized;
@@ -114,6 +120,7 @@ public class WidgetHost : Canvas
     /// <summary>移除组件</summary>
     public void RemoveWidget(WidgetContainer container)
     {
+        container.CollapsedChanged -= OnContainerCollapsed;
         container.CloseRequested -= OnWidgetClose;
         container.PositionChanged -= OnContainerMoved;
         container.WidgetSizeChanged -= OnContainerResized;
@@ -193,6 +200,11 @@ public class WidgetHost : Canvas
     private void OnWidgetClose(WidgetContainer container)
     {
         RemoveWidget(container);
+    }
+
+    private void OnContainerCollapsed(WidgetContainer container)
+    {
+        LayoutChanged?.Invoke();
     }
 
     /// <summary>
@@ -450,8 +462,10 @@ public class WidgetHost : Canvas
                 X = Canvas.GetLeft(container),
                 Y = Canvas.GetTop(container),
                 Width = container.Width,
-                Height = container.Height,
+                // 折叠中导出展开高度，否则重启后会变成一条 36px 的空壳
+                Height = container.ExpandedHeight,
                 IsVisible = container.PersistedVisible,
+                Collapsed = container.Collapsed,
                 Config = new Dictionary<string, object?>(container.Widget.Config),
             });
         }

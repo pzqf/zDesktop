@@ -56,6 +56,26 @@ public class LayoutStoreTests : IDisposable
     }
 
     [Fact]
+    public void 折叠状态应当往返保持()
+    {
+        // 真机回归：Collapsed 字段加进了模型，却漏了 App.RestoreLayout 里的映射，
+        // 结果折叠的组件重启后全部变回展开。
+        var store = new LayoutStore(_dir);
+        var config = new LayoutConfig();
+        config.Widgets.Add(new WidgetLayoutEntry
+        {
+            WidgetId = "clock", X = 100, Y = 100, Width = 280, Height = 150, Collapsed = true,
+        });
+
+        store.Save(config);
+
+        var entry = Assert.Single(store.Load()!.Widgets);
+        Assert.True(entry.Collapsed);
+        // 折叠中也必须记展开高度，否则重启后是一条 36px 的空壳、再也展不开
+        Assert.Equal(150, entry.Height);
+    }
+
+    [Fact]
     public void 文件不存在时应当返回空而不是抛异常()
     {
         var store = new LayoutStore(_dir);

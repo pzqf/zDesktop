@@ -52,6 +52,9 @@ public class WidgetLayoutEntry
     /// <summary>是否可见</summary>
     public bool IsVisible { get; set; } = true;
 
+    /// <summary>是否折叠为标题条。Height 仍记录展开时的高度。</summary>
+    public bool Collapsed { get; set; }
+
     /// <summary>组件配置（键值对，键对应 WidgetConfigField.Key）</summary>
     public Dictionary<string, object?> Config { get; set; } = new();
 }

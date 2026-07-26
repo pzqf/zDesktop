@@ -52,8 +52,103 @@ public class WidgetContainer : Border
     /// <summary>设置按钮回调（打开组件配置面板）</summary>
     public event Action<WidgetContainer>? SettingsRequested;
 
+    /// <summary>折叠状态变化（用于持久化）</summary>
+    public event Action<WidgetContainer>? CollapsedChanged;
+
     /// <summary>被包裹的组件实例</summary>
     public WidgetBase Widget => _widget;
+
+    // ===== 折叠与尺寸预设（设计案 v3.1 §3.1 组件特性）=====
+
+    /// <summary>标题栏高度 —— 折叠后容器只剩这一条</summary>
+    private const double HeaderHeight = 36;
+
+    private bool _collapsed;
+
+    /// <summary>展开时的高度。折叠期间 Height 会被压到标题栏高度，靠它还原。</summary>
+    private double _expandedHeight;
+
+    private UIElement? _contentElement;
+    private readonly List<UIElement> _resizeHandles = new();
+
+    /// <summary>
+    /// 是否折叠为标题条。
+    ///
+    /// <para>折叠时内容区与缩放手柄一并隐藏 —— 只剩一条标题栏，
+    /// 既腾出桌面空间，又保留拖动与展开的入口。</para>
+    /// </summary>
+    public bool Collapsed
+    {
+        get => _collapsed;
+        set
+        {
+            if (_collapsed == value) return;
+
+            if (value)
+            {
+                // 记住展开高度再压扁。ActualHeight 未就绪时退回 Height
+                _expandedHeight = ActualHeight > HeaderHeight ? ActualHeight : Height;
+                Height = HeaderHeight;
+            }
+            else
+            {
+                Height = _expandedHeight > HeaderHeight ? _expandedHeight : double.NaN;
+            }
+
+            _collapsed = value;
+            ApplyCollapsedVisual();
+        }
+    }
+
+    /// <summary>展开时的高度（供持久化；折叠中也返回展开值而非标题栏高度）</summary>
+    public double ExpandedHeight => _collapsed
+        ? (_expandedHeight > HeaderHeight ? _expandedHeight : Height)
+        : (ActualHeight > HeaderHeight ? ActualHeight : Height);
+
+    private void ApplyCollapsedVisual()
+    {
+        if (_contentElement != null)
+            _contentElement.Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible;
+
+        foreach (var handle in _resizeHandles)
+            handle.Visibility = _collapsed ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    /// <summary>
+    /// 从持久化配置恢复折叠状态。
+    /// 与 <see cref="Collapsed"/> setter 的区别：这里的展开高度来自配置而非当前布局，
+    /// 因为恢复时容器还没测量过，ActualHeight 为 0。
+    /// </summary>
+    public void RestoreCollapsed(bool collapsed, double expandedHeight)
+    {
+        _expandedHeight = expandedHeight > HeaderHeight ? expandedHeight : double.NaN;
+        _collapsed = collapsed;
+
+        if (collapsed) Height = HeaderHeight;
+        ApplyCollapsedVisual();
+    }
+
+    /// <summary>尺寸预设倍率（相对组件自身的默认尺寸）</summary>
+    private static readonly (string Label, double Scale)[] SizePresets =
+    {
+        ("小", 0.75),
+        ("中", 1.0),
+        ("大", 1.4),
+    };
+
+    /// <summary>按预设倍率设置尺寸</summary>
+    public void ApplySizePreset(double scale)
+    {
+        var desc = _widget.Descriptor;
+
+        Width = Math.Max(MinWidgetWidth, desc.DefaultWidth * scale);
+        var height = Math.Max(MinWidgetHeight, desc.DefaultHeight * scale);
+
+        if (_collapsed) _expandedHeight = height;
+        else Height = height;
+
+        WidgetSizeChanged?.Invoke(this, Width, height);
+    }
 
     public WidgetContainer(WidgetBase widget)
     {
@@ -162,6 +257,7 @@ public class WidgetContainer : Border
 
         header.Child = headerPanel;
         header.MouseLeftButtonDown += OnHeaderMouseDown;
+        header.MouseRightButtonUp += OnHeaderRightClick;
 
         Grid.SetRow(header, 0);
         grid.Children.Add(header);
@@ -171,6 +267,7 @@ public class WidgetContainer : Border
         _widget.FontFamily = Theme.UiFont;
         Grid.SetRow(_widget, 1);
         grid.Children.Add(_widget);
+        _contentElement = _widget;
 
         // --- 缩放手柄（仅允许缩放的组件显示）---
         if (widget.Descriptor.ResizeMode != WidgetResizeMode.None)
@@ -179,11 +276,56 @@ public class WidgetContainer : Border
             // 放在内容区（row 1），浮在内容右下角，避免和标题栏按钮重叠
             Grid.SetRow(resizeHandle, 1);
             grid.Children.Add(resizeHandle);
+            _resizeHandles.Add(resizeHandle); // 折叠时一并隐藏
         }
 
         Child = grid;
 
         _widget.OnInitialize();
+    }
+
+    /// <summary>
+    /// 标题栏右键菜单 —— 折叠与尺寸预设（设计案 v3.1 §3.1 组件特性）。
+    ///
+    /// 放右键菜单而不是往标题栏塞更多按钮：标题栏只有 36px 高，
+    /// 已经有设置与关闭两个按钮，再加就挤得没法点了。
+    /// </summary>
+    private void OnHeaderRightClick(object sender, MouseButtonEventArgs e)
+    {
+        var menu = new ContextMenu();
+
+        var toggle = new MenuItem { Header = Collapsed ? "展开" : "折叠" };
+        toggle.Click += (_, _) =>
+        {
+            Collapsed = !Collapsed;
+            CollapsedChanged?.Invoke(this);
+        };
+        menu.Items.Add(toggle);
+
+        if (_widget.Descriptor.ResizeMode != WidgetResizeMode.None)
+        {
+            menu.Items.Add(new Separator());
+
+            var sizeMenu = new MenuItem { Header = "尺寸" };
+            foreach (var (label, scale) in SizePresets)
+            {
+                var preset = scale;
+                var item = new MenuItem { Header = label };
+                item.Click += (_, _) => ApplySizePreset(preset);
+                sizeMenu.Items.Add(item);
+            }
+            menu.Items.Add(sizeMenu);
+        }
+
+        menu.Items.Add(new Separator());
+
+        var close = new MenuItem { Header = "移除组件" };
+        close.Click += (_, _) => CloseRequested?.Invoke(this);
+        menu.Items.Add(close);
+
+        menu.PlacementTarget = this;
+        menu.IsOpen = true;
+        e.Handled = true;
     }
 
     /// <summary>缩放模式（缓存描述符值，避免每次拖拽都访问 Descriptor）</summary>
@@ -271,6 +413,15 @@ public class WidgetContainer : Border
 
     private void OnHeaderMouseDown(object sender, MouseButtonEventArgs e)
     {
+        // 双击标题栏折叠/展开 —— 与分区标题栏一致的手势
+        if (e.ClickCount == 2)
+        {
+            Collapsed = !Collapsed;
+            CollapsedChanged?.Invoke(this);
+            e.Handled = true;
+            return;
+        }
+
         _isDragging = true;
         _dragStartPoint = e.GetPosition(null);
 
