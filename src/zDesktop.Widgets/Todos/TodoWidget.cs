@@ -39,22 +39,9 @@ public class TodoWidget : WidgetBase
     public TodoWidget()
     {
         // ===== 输入区 =====
+        // DockPanel 的填充名额只给最后一个孩子，所以固定宽度的「+」必须先入，
+        // 输入框最后入才能吃掉剩下的宽度。顺序反了输入框会被压成一个小方块。
         var inputPanel = new DockPanel { Margin = new Thickness(10, 8, 10, 6) };
-
-        _inputBox = new TextBox
-        {
-            FontSize = 13,
-            FontFamily = Theme.UiFont,
-            Background = Theme.InputBackground,
-            Foreground = Theme.TextRegular,
-            BorderBrush = Theme.InputBorder,
-            BorderThickness = new Thickness(1),
-            Padding = new Thickness(8, 5, 8, 5),
-            CaretBrush = Brushes.White,
-        };
-        _inputBox.KeyDown += OnInputKeyDown;
-        DockPanel.SetDock(_inputBox, Dock.Left);
-        inputPanel.Children.Add(_inputBox);
 
         var addBtn = new Button
         {
@@ -75,6 +62,20 @@ public class TodoWidget : WidgetBase
         DockPanel.SetDock(addBtn, Dock.Right);
         inputPanel.Children.Add(addBtn);
 
+        _inputBox = new TextBox
+        {
+            FontSize = 13,
+            FontFamily = Theme.UiFont,
+            Background = Theme.InputBackground,
+            Foreground = Theme.TextRegular,
+            BorderBrush = Theme.InputBorder,
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(8, 5, 8, 5),
+            CaretBrush = Brushes.White,
+        };
+        _inputBox.KeyDown += OnInputKeyDown;
+        inputPanel.Children.Add(_inputBox);   // 最后入 = 占满剩余宽度
+
         // ===== 待办列表 =====
         _listPanel = new StackPanel { Margin = new Thickness(6, 0, 6, 0) };
 
@@ -88,7 +89,9 @@ public class TodoWidget : WidgetBase
         };
 
         // ===== 底部统计 =====
-        var footerPanel = new DockPanel { Margin = new Thickness(10, 0, 10, 8) };
+        // 关掉填充名额：两侧各自贴边，中间留空。开着的话「清除已完成」
+        // 会去占满剩余宽度，看上去像是紧跟在统计文字后面。
+        var footerPanel = new DockPanel { Margin = new Thickness(10, 0, 10, 8), LastChildFill = false };
 
         _statsText = new TextBlock
         {
@@ -117,16 +120,21 @@ public class TodoWidget : WidgetBase
         footerPanel.Children.Add(clearBtn);
 
         // ===== 主面板 =====
-        var panel = new StackPanel();
-        panel.Children.Add(inputPanel);
-        panel.Children.Add(_scrollViewer);
-        panel.Children.Add(footerPanel);
+        // 用 Grid 而不是 StackPanel：StackPanel 里列表只占内容高度，
+        // 页脚会跟在列表下面往上飘，组件下半截空着，列表也长到撑破组件才滚动。
+        var grid = new Grid { Background = Brushes.Transparent };
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });  // 输入
+        grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 列表吃满
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });  // 页脚贴底
 
-        Content = new Grid
-        {
-            Background = Brushes.Transparent,
-            Children = { panel },
-        };
+        Grid.SetRow(inputPanel, 0);
+        Grid.SetRow(_scrollViewer, 1);
+        Grid.SetRow(footerPanel, 2);
+        grid.Children.Add(inputPanel);
+        grid.Children.Add(_scrollViewer);
+        grid.Children.Add(footerPanel);
+
+        Content = grid;
 
         _store.Changed += RefreshList;
     }
@@ -201,7 +209,7 @@ public class TodoWidget : WidgetBase
             IsChecked = item.IsCompleted,
             VerticalAlignment = VerticalAlignment.Center,
             Cursor = Cursors.Hand,
-            Margin = new Thickness(0, 0,6,0),
+            Margin = new Thickness(0, 0, 6, 0),
         };
         checkbox.Click += (_, _) => _store.Toggle(item.Id);
         DockPanel.SetDock(checkbox, Dock.Left);
