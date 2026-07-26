@@ -33,9 +33,8 @@ public class SystemMonitorWidget : WidgetBase
     private readonly Canvas _graphCanvas;
     private readonly StackPanel _memSection; // 内存区（可整体隐藏）
 
-    private readonly float[] _cpuHistory = new float[MaxPoints];
-    private readonly float[] _memHistory = new float[MaxPoints];
-    private int _historyCount;
+    private readonly SampleSeries _cpuHistory = new(MaxPoints);
+    private readonly SampleSeries _memHistory = new(MaxPoints);
 
     /// <summary>刷新频率（秒）</summary>
     private int _refreshInterval = 1;
@@ -255,34 +254,18 @@ public class SystemMonitorWidget : WidgetBase
         _memDetail.Text = $"可用 {availGb:F1} GB / 共 {totalGb:F1} GB";
 
         // 推入历史
-        PushHistory(_cpuHistory, sample.CpuUsage);
-        PushHistory(_memHistory, sample.MemoryUsage);
+        _cpuHistory.Push(sample.CpuUsage);
+        _memHistory.Push(sample.MemoryUsage);
 
         // 绘制折线图
         DrawGraph(_cpuGraph, _cpuHistory);
         DrawGraph(_memGraph, _memHistory);
     }
 
-    private void PushHistory(float[] history, float value)
-    {
-        if (_historyCount < MaxPoints)
-        {
-            history[_historyCount] = value;
-            _historyCount++;
-        }
-        else
-        {
-            // 左移
-            Array.Copy(history, 1, history, 0, MaxPoints - 1);
-            history[MaxPoints - 1] = value;
-        }
-    }
-
     /// <summary>根据历史数据绘制折线图（0-100 映射到画布高度）</summary>
-    private void DrawGraph(Polyline graph, float[] history)
+    private static void DrawGraph(Polyline graph, SampleSeries history)
     {
-        var canvas = graph.Parent as Canvas;
-        if (canvas == null) return;
+        if (graph.Parent is not Canvas canvas) return;
 
         canvas.Dispatcher.BeginInvoke(new Action(() =>
         {
@@ -291,11 +274,10 @@ public class SystemMonitorWidget : WidgetBase
             if (w <= 0 || h <= 0) return;
 
             var points = new PointCollection();
-            var n = Math.Min(_historyCount, MaxPoints);
 
-            for (var i = 0; i < n; i++)
+            for (var i = 0; i < history.Count; i++)
             {
-                var x = n == 1 ? 0 : w * i / (MaxPoints - 1);
+                var x = w * i / (history.Capacity - 1.0);
                 var y = h - (h * history[i] / 100f);
                 points.Add(new Point(x, y));
             }
