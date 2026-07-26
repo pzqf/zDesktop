@@ -68,12 +68,19 @@ public sealed class FenceOrganizer
     /// 执行一键整理：落盘快照 → 套用规则 → 写回坐标。
     /// </summary>
     public OrganizeResult Organize(FenceConfig config, FenceAssignmentModel assignments,
-        FenceCoordinateSpace space, string label = "一键整理")
+        FenceCoordinateSpace space, string label = "一键整理",
+        IEnumerable<string>? fenceIdsBefore = null)
     {
         _resolver.Refresh();
 
         // 1. 先落盘快照。失败即中止 —— 不给自己留无法撤销的操作
-        var snapshotId = CaptureSnapshot(assignments, label);
+        //    调用方在建完分区之后才进来，所以「现在有的」减去「进来之前有的」
+        //    就是本次新建的那几个，撤销时精确删它们。
+        var before = new HashSet<string>(
+            fenceIdsBefore ?? config.Fences.Select(f => f.Id), StringComparer.Ordinal);
+        var created = config.Fences.Select(f => f.Id).Where(id => !before.Contains(id)).ToList();
+
+        var snapshotId = CaptureSnapshot(assignments, label, created);
         if (snapshotId == null)
         {
             Console.WriteLine("[Organizer] 快照落盘失败，已中止整理（不执行无法撤销的操作）");
@@ -94,7 +101,7 @@ public sealed class FenceOrganizer
     /// 撤销到指定快照：恢复归属记录与图标坐标。
     /// </summary>
     /// <returns>成功还原的图标数；快照不存在返回 -1</returns>
-    public int Undo(string snapshotId, FenceAssignmentModel assignments)
+    public int Undo(string snapshotId, FenceAssignmentModel assignments, FenceConfig? config = null)
     {
         var snapshot = _snapshots.Load(snapshotId);
         if (snapshot == null)
@@ -107,7 +114,18 @@ public sealed class FenceOrganizer
         var restored = new FenceAssignmentModel(snapshot.Assignments);
         assignments.ReplaceAll(restored.ToList());
 
-        // 2. 图标坐标回滚
+        // 2. 删掉本次操作新建的分区。
+        //    不做这一步，撤销后桌面上会留下一个 0 归属的空框 ——
+        //    用户理解的撤销是「回到点应用之前」，那时它们并不存在。
+        //    null 表示快照产生于该字段存在之前，无从判断，就什么都不删。
+        if (config != null && snapshot.CreatedFenceIds is { Count: > 0 } createdIds)
+        {
+            var drop = new HashSet<string>(createdIds, StringComparer.Ordinal);
+            var removed = config.Fences.RemoveAll(f => drop.Contains(f.Id));
+            if (removed > 0) Console.WriteLine($"[Organizer] 已移除本次整理新建的 {removed} 个分区");
+        }
+
+        // 3. 图标坐标回滚
         _resolver.Refresh();
         var pathToIndex = _resolver.ResolveAll(_icons.ReadAll());
         var writes = new List<(int, IconPoint)>();
@@ -126,14 +144,15 @@ public sealed class FenceOrganizer
     }
 
     /// <summary>撤销最近一次操作</summary>
-    public int UndoLatest(FenceAssignmentModel assignments)
+    public int UndoLatest(FenceAssignmentModel assignments, FenceConfig? config = null)
     {
         var latest = _snapshots.Latest();
-        return latest == null ? -1 : Undo(latest.Id, assignments);
+        return latest == null ? -1 : Undo(latest.Id, assignments, config);
     }
 
     /// <summary>捕获当前桌面状态</summary>
-    private string? CaptureSnapshot(FenceAssignmentModel assignments, string label)
+    private string? CaptureSnapshot(FenceAssignmentModel assignments, string label,
+        IEnumerable<string> fenceIds)
     {
         var positions = new Dictionary<string, IconPoint>(StringComparer.OrdinalIgnoreCase);
 
@@ -143,7 +162,7 @@ public sealed class FenceOrganizer
             if (path != null) positions[path] = icon.Position;
         }
 
-        return _snapshots.Capture(label, positions, assignments.All, positions.Count);
+        return _snapshots.Capture(label, positions, assignments.All, positions.Count, fenceIds);
     }
 
     private static FenceAssignment Clone(FenceAssignment a) => new()

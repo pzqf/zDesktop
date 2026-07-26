@@ -147,6 +147,50 @@ public class FenceSnapshotTests : IDisposable
         Assert.Null(new FenceSnapshotStore(_dir).Load("不存在"));
     }
 
+    // ===== 新建分区的记录（撤销要精确删掉它们）=====
+
+    [Fact]
+    public void 首次整理没有旧分区时新建列表应当照样落盘()
+    {
+        // 真机全流程实测到的坑：首次整理之前一个分区都没有，
+        // 若用「列表为空 = 没记录」兜旧快照，恰好把最该清理的这一次排除掉，
+        // 撤销后桌面上留下一个 0 归属的空框。
+        var store = new FenceSnapshotStore(_dir);
+
+        var id = store.Capture("首次整理", Positions((@"C:\a.txt", 1, 1)),
+            Array.Empty<FenceAssignment>(), 1, new[] { "newfence" });
+
+        var loaded = store.Load(id!);
+        Assert.Equal(new[] { "newfence" }, loaded!.CreatedFenceIds);
+    }
+
+    [Fact]
+    public void 没新建分区的整理应当记空列表而不是空值()
+    {
+        var store = new FenceSnapshotStore(_dir);
+
+        var id = store.Capture("一键整理", Positions((@"C:\a.txt", 1, 1)),
+            Array.Empty<FenceAssignment>(), 1, Array.Empty<string>());
+
+        var loaded = store.Load(id!);
+        Assert.NotNull(loaded!.CreatedFenceIds);   // 「本次没新建」
+        Assert.Empty(loaded.CreatedFenceIds!);
+    }
+
+    [Fact]
+    public void 该字段出现之前的旧快照应当读成空值以免误删分区()
+    {
+        // 旧快照无从判断哪些分区是当时新建的，撤销时就一个都别动
+        var store = new FenceSnapshotStore(_dir);
+        File.WriteAllText(Path.Combine(_dir, "20200101-000000-000.json"),
+            """{"id":"20200101-000000-000","label":"旧","iconPositions":{},"assignments":[]}""");
+
+        var loaded = store.Load("20200101-000000-000");
+
+        Assert.NotNull(loaded);
+        Assert.Null(loaded!.CreatedFenceIds);
+    }
+
     // ===== 归属整体回滚 =====
 
     [Fact]

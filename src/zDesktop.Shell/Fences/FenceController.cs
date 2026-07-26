@@ -332,8 +332,13 @@ public sealed class FenceController : IDisposable
     {
         if (!IsAvailable) return -1;
 
-        var restored = _organizer.UndoLatest(_assignments);
-        if (restored >= 0) Save();
+        var restored = _organizer.UndoLatest(_assignments, _config);
+        if (restored >= 0)
+        {
+            RebuildLayers();
+            Save();
+            SyncAndCompose(); // 分区可能被移除，背景要跟着重画
+        }
         return restored;
     }
 
@@ -404,6 +409,9 @@ public sealed class FenceController : IDisposable
 
         var primary = MonitorSet.Primary(_space.Monitors.ToList());
 
+        // 记下建分区**之前**的分区列表，撤销时据此删掉本次新建的
+        var fenceIdsBefore = _config.Fences.Select(f => f.Id).ToList();
+
         // 先建分区（此时还没动任何图标）
         var created = new List<(Fence Fence, IReadOnlyList<string> Files)>();
         foreach (var p in proposal.Fences)
@@ -425,7 +433,7 @@ public sealed class FenceController : IDisposable
         RebuildLayers();
 
         // 快照必须在真正动图标之前落盘。失败即回滚刚建的分区，绝不执行无法撤销的操作
-        var result = _organizer.Organize(_config, _assignments, _space, "首次整理");
+        var result = _organizer.Organize(_config, _assignments, _space, "首次整理", fenceIdsBefore);
         if (!result.Succeeded)
         {
             foreach (var (fence, _) in created) _config.Fences.RemoveAll(f => f.Id == fence.Id);

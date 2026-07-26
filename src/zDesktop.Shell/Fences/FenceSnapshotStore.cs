@@ -24,6 +24,21 @@ public sealed class FenceSnapshot
     /// <summary>操作前的全部归属记录</summary>
     public List<FenceAssignment> Assignments { get; set; } = new();
 
+    /// <summary>
+    /// 本次操作**新建**的分区 Id。撤销时精确删掉这几个。
+    ///
+    /// <para>用户理解的撤销是「回到点应用之前」，那时这些分区并不存在。
+    /// 少了这一步，撤销后桌面上会留下 0 归属的空框（真机全流程实测到的问题）。</para>
+    ///
+    /// <para><b>为什么记「新建的」而不是「操作前有哪些」</b>：后者要靠
+    /// 「不在名单里就删」来推断，于是用户在整理之后手动建的分区，
+    /// 撤销时会被连坐删掉 —— 那是他自己的东西，撤销无权碰。</para>
+    ///
+    /// <para><b>为什么可空</b>：<c>null</c> 表示快照产生于该字段存在之前，
+    /// 无从判断，此时一个分区都不动；空列表则明确表示「本次没新建分区」。</para>
+    /// </summary>
+    public List<string>? CreatedFenceIds { get; set; }
+
     /// <summary>受影响的文件数（供 UI 展示「已整理 N 个文件」）</summary>
     public int AffectedCount { get; set; }
 }
@@ -78,7 +93,8 @@ public sealed class FenceSnapshotStore
     public string? Capture(string label,
         IReadOnlyDictionary<string, IconPoint> iconPositions,
         IEnumerable<FenceAssignment> assignments,
-        int affectedCount)
+        int affectedCount,
+        IEnumerable<string>? createdFenceIds = null)
     {
         try
         {
@@ -91,6 +107,8 @@ public sealed class FenceSnapshotStore
                 CreatedAt = DateTime.Now,
                 Assignments = assignments.Select(Clone).ToList(),
                 AffectedCount = affectedCount,
+                // 新快照一律带上，哪怕是空的 —— 空列表和「没记录」不是一回事
+                CreatedFenceIds = createdFenceIds?.ToList() ?? new List<string>(),
             };
 
             foreach (var (path, point) in iconPositions)
@@ -127,6 +145,7 @@ public sealed class FenceSnapshotStore
                 // 元信息列表不需要携带完整坐标表，清掉以免占内存
                 s.IconPositions = new Dictionary<string, SnapshotPoint>();
                 s.Assignments = new List<FenceAssignment>();
+                s.CreatedFenceIds = null;
                 result.Add(s);
             }
         }

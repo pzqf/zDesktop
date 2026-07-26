@@ -114,6 +114,29 @@ public sealed class ToastWindow : Window
 
         Loaded += (_, _) => PositionBottomRight();
         Closed += (_, _) => _autoClose?.Stop();
+        SourceInitialized += (_, _) => MakeNonActivating();
+
+        // 卡片是「用户确认」这条链路的唯一入口，出问题时必须能从日志里
+        // 复原「弹了哪张卡、用户点了哪个键」，而不是靠窗口尺寸反推。
+        Console.WriteLine($"[Toast] 弹出「{title}」按钮: {string.Join(" | ", actions.Select(a => a.Text))}");
+    }
+
+    /// <summary>
+    /// 让卡片永不参与激活（<c>WS_EX_NOACTIVATE</c>）。
+    ///
+    /// <para><c>ShowActivated=false</c> 只保证「弹出时」不抢焦点；点击它时
+    /// 窗口仍会被激活，用户正在打字的那个窗口会当场失焦。
+    /// zDesktop 是常驻后台的工具，一张提示卡片不配打断用户手上的事，
+    /// 所以让它彻底退出激活链 —— 点击照常送达按钮，焦点不动。</para>
+    /// </summary>
+    private void MakeNonActivating()
+    {
+        var hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero) return;
+
+        var ex = zDesktop.Shell.Interop.Win32.GetWindowExStyle(hwnd);
+        zDesktop.Shell.Interop.Win32.SetWindowExStyle(
+            hwnd, ex | zDesktop.Shell.Interop.Win32.WS_EX_NOACTIVATE);
     }
 
     /// <summary>中文字体必须显式指定，否则走字体回退会把小字号中文糊掉（M3 实测）</summary>
@@ -149,6 +172,7 @@ public sealed class ToastWindow : Window
 
         button.Click += (_, _) =>
         {
+            Console.WriteLine($"[Toast] 点击「{action.Text}」");
             _autoClose?.Stop();
             Close();
             // 先关卡片再执行回调：回调里可能弹新窗口，不该被这张卡片挡着
