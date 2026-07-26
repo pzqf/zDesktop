@@ -207,7 +207,10 @@ public static class Theme
         ShadowColor = Color.FromRgb(0x00, 0x00, 0x00),
 
         // 笔刷 — 白色叠加（深色底用白线分层）
-        ContainerBackground = Color.FromArgb(0xD2, 0x1C, 0x1A, 0x26),
+        // 容器透明度对齐浅色主题的 0xE8：原来的 0xD2（82%）在壁纸上还行，
+        // 一旦组件压住桌面图标，18% 的高对比图案透上来就把文字搅糊了。
+        // 我们没有背后模糊可用，只能靠不透明度保可读性。
+        ContainerBackground = Color.FromArgb(0xE8, 0x1C, 0x1A, 0x26),
         ContainerBorder = Color.FromArgb(0x2E, 0xFF, 0xFF, 0xFF),
         HeaderBackground = Color.FromArgb(0x14, 0xFF, 0xFF, 0xFF),
         Divider = Color.FromArgb(0x1A, 0xFF, 0xFF, 0xFF),

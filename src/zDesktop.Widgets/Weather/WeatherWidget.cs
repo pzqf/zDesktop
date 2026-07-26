@@ -33,6 +33,7 @@ public class WeatherWidget : WidgetBase
     private readonly TextBlock _detailText;
     private readonly StackPanel _forecastPanel;
     private readonly TextBlock _statusText;
+    private readonly StackPanel _dataPanel;   // 没配 Key 时整块收起
 
     private string _locationId = string.Empty;
 
@@ -86,6 +87,12 @@ public class WeatherWidget : WidgetBase
 
         var panel = new StackPanel { Margin = new Thickness(14, 10, 14, 14) };
 
+        // 数据区整体成组：没配 API Key 时一起收起。
+        // 否则用户看到的是一个空城市名、一个孤零零的「°」和空的「未来 3 天」，
+        // 像是组件坏了，而不是「还没填 Key」。
+        _dataPanel = new StackPanel();
+        panel.Children.Add(_dataPanel);
+
         // ===== 当前天气区 =====
         _cityText = new TextBlock
         {
@@ -94,7 +101,7 @@ public class WeatherWidget : WidgetBase
             FontFamily = Theme.UiFont,
             Foreground = Theme.TextPrimary,
         };
-        panel.Children.Add(_cityText);
+        _dataPanel.Children.Add(_cityText);
 
         // 温度 + 天气描述
         var tempRow = new StackPanel
@@ -127,7 +134,7 @@ public class WeatherWidget : WidgetBase
             Margin = new Thickness(2, 0, 8, 4),
         });
         tempRow.Children.Add(_weatherText);
-        panel.Children.Add(tempRow);
+        _dataPanel.Children.Add(tempRow);
 
         // 详情
         _detailText = new TextBlock
@@ -137,10 +144,10 @@ public class WeatherWidget : WidgetBase
             Margin = new Thickness(0, 6, 0, 0),
             FontFamily = Theme.MonoFont,
         };
-        panel.Children.Add(_detailText);
+        _dataPanel.Children.Add(_detailText);
 
         // 分隔线
-        panel.Children.Add(new Border
+        _dataPanel.Children.Add(new Border
         {
             Height = 1,
             Background = Theme.Divider,
@@ -148,7 +155,7 @@ public class WeatherWidget : WidgetBase
         });
 
         // ===== 预报区标题 =====
-        panel.Children.Add(new TextBlock
+        _dataPanel.Children.Add(new TextBlock
         {
             Text = "未来 3 天",
             FontSize = 11,
@@ -159,7 +166,7 @@ public class WeatherWidget : WidgetBase
 
         // 预报列表
         _forecastPanel = new StackPanel();
-        panel.Children.Add(_forecastPanel);
+        _dataPanel.Children.Add(_forecastPanel);
 
         // 状态提示（加载中/错误）
         _statusText = new TextBlock
@@ -182,11 +189,9 @@ public class WeatherWidget : WidgetBase
         _timer.Tick += (_, _) => _ = RefreshWeatherAsync();
     }
 
-    public override void OnInitialize()
-    {
-        _statusText.Text = "加载中...";
-        // 延迟加载，等配置应用后
-    }
+    // 不重写 OnInitialize：配置在容器创建之前就已应用（见 WidgetHost.AddWidget），
+    // 此时 OnConfigChanged 已经把状态摆好了。这里再写一句「加载中…」，
+    // 只会把「请填写 API Key」盖掉，让用户干等一个永远不会来的结果。
 
     public override void OnConfigChanged()
     {
@@ -208,10 +213,19 @@ public class WeatherWidget : WidgetBase
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            _statusText.Text = "请在设置中填写 API Key";
             _timer.Stop();
+            _dataPanel.Visibility = Visibility.Collapsed;
+            _statusText.Text = "天气需要一个和风天气 API Key。\n" +
+                               "点右上角齿轮填入，dev.qweather.com 可免费申请。";
+            _statusText.TextWrapping = TextWrapping.Wrap;
+            _statusText.TextAlignment = TextAlignment.Center;
+            _statusText.Margin = new Thickness(4, 26, 4, 0);
             return;
         }
+
+        _dataPanel.Visibility = Visibility.Visible;
+        _statusText.Margin = new Thickness(0, 8, 0, 0);
+        _statusText.Text = "加载中...";
 
         // 城市变更 → 重新查询 LocationId
         if (!string.IsNullOrEmpty(city))

@@ -197,10 +197,9 @@ public class WallpaperWidget : WidgetBase
         };
     }
 
-    public override void OnInitialize()
-    {
-        _sourceLabel.Text = "加载中...";
-    }
+    // 不重写 OnInitialize：配置在容器创建之前就已应用，OnConfigChanged
+    // 那时已经把来源写成「必应每日壁纸」并开始加载了。这里再写一句
+    //「加载中…」只会把它盖掉，图片都显示出来了标题还停在加载中。
 
     public override void OnConfigChanged()
     {
