@@ -198,6 +198,79 @@ public class FenceGeometryTests
 
     // ===== 内容区 =====
 
+    // ===== 按内容定尺寸（用户反馈：图标超出框外）=====
+
+    [Fact]
+    public void 分区尺寸应当装得下指定数量的图标()
+    {
+        // 真机回归：固定 300x320 的「应用」分区容量只有 4 个，
+        // 而桌面上有 28 个快捷方式，最后一行底部超出分区 1180 像素
+        const int count = 28;
+
+        var (w, h, _) = FenceGeometry.RequiredSize(count, Grid, titleHeight: 32, padding: 8,
+            maxWidth: 960, maxHeight: 912);
+
+        var content = FenceGeometry.ContentAreaOf(new IconRect(0, 0, w, h), 32, 8);
+        Assert.True(FenceGeometry.CapacityFor(content, Grid) >= count,
+            $"尺寸 {w}x{h} 容量 {FenceGeometry.CapacityFor(content, Grid)} < 需要的 {count}");
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(4)]
+    [InlineData(9)]
+    [InlineData(28)]
+    [InlineData(60)]
+    public void 各种数量下都应装得下(int count)
+    {
+        var (w, h, _) = FenceGeometry.RequiredSize(count, Grid, 32, 8, 960, 912);
+        var content = FenceGeometry.ContentAreaOf(new IconRect(0, 0, w, h), 32, 8);
+
+        Assert.True(FenceGeometry.CapacityFor(content, Grid) >= count,
+            $"{count} 个图标：尺寸 {w}x{h} 装不下");
+    }
+
+    [Fact]
+    public void 尺寸必须留出格点对齐的余量()
+    {
+        // 内容区左上角一般不在格点上，对齐会吃掉最多一整格。
+        // 不留余量就会出现「按 3 列算的宽度实际只排得下 2 列」——
+        // 实测 284 宽的内容区只排下 2 列而非 3 列。
+        var (w, _, cols) = FenceGeometry.RequiredSize(9, Grid, 32, 8, 960, 912);
+
+        // 内容区起点取最坏情况（刚过一个格点）时仍要排得下 cols 列
+        var worstCase = new IconRect(1, 1, w - 16, 1000);
+        Assert.True(FenceGeometry.ColumnsFor(worstCase, Grid) >= cols,
+            $"宽度 {w} 在最坏对齐下只排得下 {FenceGeometry.ColumnsFor(worstCase, Grid)} 列，不足 {cols} 列");
+    }
+
+    [Fact]
+    public void 尺寸不应超出给定上限()
+    {
+        var (w, h, _) = FenceGeometry.RequiredSize(500, Grid, 32, 8, maxWidth: 600, maxHeight: 400);
+
+        Assert.True(w <= 600, $"宽度 {w} 超出上限");
+        Assert.True(h <= 400, $"高度 {h} 超出上限");
+    }
+
+    [Fact]
+    public void 图标数为零时应返回可操作的最小尺寸()
+    {
+        var (w, h, _) = FenceGeometry.RequiredSize(0, Grid, 32, 8, 960, 912);
+
+        Assert.True(w > 0 && h > 0);
+        Assert.True(h > 32, "高度必须大于标题栏，否则分区点不中也拖不动");
+    }
+
+    [Fact]
+    public void 数量少时不应排成又高又窄的一条()
+    {
+        // 近似方形比一列到底好看得多
+        var (w, h, _) = FenceGeometry.RequiredSize(9, Grid, 32, 8, 960, 912);
+
+        Assert.True(h < w * 3, $"{w}x{h} 过于窄高");
+    }
+
     [Fact]
     public void 内容区应当扣掉标题栏与内边距()
     {

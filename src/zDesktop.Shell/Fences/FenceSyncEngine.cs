@@ -47,21 +47,40 @@ public sealed class FenceSyncEngine
     /// </summary>
     public bool IsBlockedByAutoArrange => _icons.EnsureConnected() && _icons.IsAutoArrange;
 
-    /// <summary>当前 Shell 网格规格。间距运行时查询，原点取首个图标的坐标对齐基准。</summary>
+    /// <summary>
+    /// 缓存的网格规格。
+    ///
+    /// <para><b>为什么必须缓存</b>：原点是靠「某个图标的当前坐标对间距取模」还原出来的
+    /// Explorer 格点相位。可一旦我们开始移动图标，这个基准自己就变了 ——
+    /// 于是「估算分区尺寸」与「真正写坐标」两步拿到的原点不同，列数算出来对不上，
+    /// 表现就是分区明明撑大了、图标却仍然超框（实测超出 54~82 像素）。</para>
+    ///
+    /// <para>原点在**移动任何图标之前**取一次即固定；显示器配置变化时才重取。</para>
+    /// </summary>
+    private GridSpec? _cachedGrid;
+
+    /// <summary>当前 Shell 网格规格（首次读取后缓存）</summary>
     public GridSpec ReadGrid()
     {
+        if (_cachedGrid is { IsValid: true }) return _cachedGrid.Value;
+
         var (cx, cy) = _icons.ItemSpacing;
 
-        // 网格原点：Explorer 的格点相位。取任一图标坐标对间距取模即可还原，
+        // 取任一图标坐标对间距取模即可还原格点相位；
         // 没有图标时退化为 (0,0)，此时任何坐标都在格上。
         var first = _icons.Count > 0 ? _icons.GetPosition(0) : null;
         var ox = first.HasValue ? Mod(first.Value.X, cx) : 0;
         var oy = first.HasValue ? Mod(first.Value.Y, cy) : 0;
 
-        return new GridSpec(ox, oy, cx, cy);
+        _cachedGrid = new GridSpec(ox, oy, cx, cy);
+        Console.WriteLine($"[FenceSync] 网格已锁定: 原点({ox},{oy}) 间距 {cx}x{cy}");
+        return _cachedGrid.Value;
 
         static int Mod(int v, int m) => m <= 0 ? 0 : ((v % m) + m) % m;
     }
+
+    /// <summary>显示器配置或图标大小变化后重新取网格</summary>
+    public void ResetGridCache() => _cachedGrid = null;
 
     // ===== zDesktop → Explorer =====
 

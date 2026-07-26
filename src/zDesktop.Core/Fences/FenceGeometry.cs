@@ -139,6 +139,56 @@ public static class FenceGeometry
     }
 
     /// <summary>
+    /// 求装下指定数量图标所需的分区尺寸。
+    ///
+    /// <para><b>为什么必须有这个</b>：分区尺寸若用固定常量，图标一多就会溢出到框外。
+    /// 实测一个 300×320 的「应用」分区容量只有 4 个，而桌面上有 28 个快捷方式，
+    /// 最后一行底部超出分区 1180 像素 —— 看起来就是「图标跑到框外面去了」。</para>
+    ///
+    /// <para><b>为什么要留一格余量</b>：槽位必须落在 Shell 全局格点上，
+    /// 而内容区左上角通常不在格点上，对齐会吃掉最多一整格。
+    /// 不留余量就会出现「按 3 列算的宽度实际只排得下 2 列」。</para>
+    ///
+    /// <para>原生图标无法滚动（它们由 Explorer 渲染，我们只能改坐标不能裁剪），
+    /// 所以设计案 §3.1 写的「超出容器高度时容器内滚动」在 Plan A 下不可实现，
+    /// 只能靠把分区撑到足够大。</para>
+    /// </summary>
+    /// <param name="itemCount">要装下的图标数</param>
+    /// <param name="grid">Shell 图标网格</param>
+    /// <param name="titleHeight">标题栏高度</param>
+    /// <param name="padding">内边距</param>
+    /// <param name="maxWidth">可用宽度上限</param>
+    /// <param name="maxHeight">可用高度上限</param>
+    public static (int Width, int Height, int Columns) RequiredSize(
+        int itemCount, GridSpec grid, int titleHeight, int padding, int maxWidth, int maxHeight)
+    {
+        if (itemCount <= 0 || !grid.IsValid)
+            return (Math.Min(maxWidth, 240), Math.Min(maxHeight, titleHeight + padding * 2 + 100), 1);
+
+        // 对齐余量：内容区起点一般不在格点上，两个方向各留一格
+        var chromeW = padding * 2 + grid.Cx;
+        var chromeH = titleHeight + padding * 2 + grid.Cy;
+
+        var maxCols = Math.Max(1, (maxWidth - chromeW) / grid.Cx);
+        var maxRows = Math.Max(1, (maxHeight - chromeH) / grid.Cy);
+
+        // 先按近似方形起步，视觉上比又高又窄的一条好看得多
+        var cols = Math.Max(1, (int)Math.Ceiling(Math.Sqrt(itemCount)));
+
+        // 行数放不下就加宽
+        while (cols < maxCols && (int)Math.Ceiling(itemCount / (double)cols) > maxRows)
+            cols++;
+
+        cols = Math.Clamp(cols, 1, maxCols);
+        var rows = Math.Max(1, (int)Math.Ceiling(itemCount / (double)cols));
+
+        var width = Math.Min(maxWidth, chromeW + cols * grid.Cx);
+        var height = Math.Min(maxHeight, chromeH + rows * grid.Cy);
+
+        return (width, height, cols);
+    }
+
+    /// <summary>
     /// 由分区矩形求内容区（扣掉标题栏与内边距）。
     /// </summary>
     /// <param name="fence">分区矩形（物理像素，图标空间）</param>

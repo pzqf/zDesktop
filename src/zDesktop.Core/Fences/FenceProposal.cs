@@ -55,10 +55,11 @@ public static class FenceProposal
     /// <summary>类别文件数达到此值才建分区，避免产生只装一个文件的框</summary>
     public const int MinFilesPerFence = 2;
 
-    /// <summary>分区默认尺寸（DIP）</summary>
-    private const double FenceWidth = 300;
-    private const double FenceHeight = 320;
     private const double Gap = 24;
+
+    /// <summary>标题栏与内边距 —— 与 FenceSyncEngine 的默认值保持一致</summary>
+    private const int TitleHeight = 32;
+    private const int Padding = 8;
 
     /// <summary>距工作区右边缘的留白 —— 桌面图标习惯从左侧排起，分区放右侧不挡原有图标</summary>
     private const double RightMargin = 40;
@@ -73,7 +74,9 @@ public static class FenceProposal
     public static OrganizeProposal Build(
         IReadOnlyCollection<FileSnapshot> files,
         double workAreaWidth,
-        double workAreaHeight)
+        double workAreaHeight,
+        int gridCellWidth = 76,
+        int gridCellHeight = 100)
     {
         var buckets = new List<(int TemplateIndex, List<string> Files)>();
 
@@ -99,7 +102,7 @@ public static class FenceProposal
             buckets.Add((i, matched));
         }
 
-        var rects = LayOut(buckets.Count, workAreaWidth, workAreaHeight);
+        var rects = LayOut(buckets, workAreaWidth, workAreaHeight, gridCellWidth, gridCellHeight);
         var proposed = new List<ProposedFence>();
 
         for (var i = 0; i < buckets.Count; i++)
@@ -120,38 +123,47 @@ public static class FenceProposal
     }
 
     /// <summary>
-    /// 排布建议的分区位置。
+    /// 排布建议的分区位置，**尺寸按各自的图标数算**。
     ///
-    /// 从工作区右上角起向左排列，排不下再换行；
-    /// 工作区太窄时退化为单列并收窄分区，保证不会算出跑到屏幕外的坐标。
+    /// <para>从工作区右上角起自上而下排列；放不下就另起一列往左。
+    /// 分区靠右是为了避开左侧原有图标。</para>
     /// </summary>
-    private static List<FenceRect> LayOut(int count, double workAreaWidth, double workAreaHeight)
+    private static List<FenceRect> LayOut(
+        IReadOnlyList<(int TemplateIndex, List<string> Files)> buckets,
+        double workAreaWidth, double workAreaHeight,
+        int gridCellWidth, int gridCellHeight)
     {
         var result = new List<FenceRect>();
-        if (count <= 0) return result;
+        if (buckets.Count == 0) return result;
 
-        var width = FenceWidth;
-        var usable = Math.Max(0, workAreaWidth - RightMargin * 2);
+        var grid = new GridSpec(0, 0, gridCellWidth, gridCellHeight);
 
-        // 一行放不下一个标准宽度的分区时，按可用宽度收窄
-        if (usable < width) width = Math.Max(120, usable);
+        // 单个分区的尺寸上限：不超过工作区的一半宽、上下各留一点边距
+        var maxW = (int)Math.Max(gridCellWidth * 2, workAreaWidth / 2);
+        var maxH = (int)Math.Max(gridCellHeight * 2, workAreaHeight - TopMargin * 2);
 
-        var perRow = Math.Max(1, (int)((usable + Gap) / (width + Gap)));
+        var columnRight = workAreaWidth - RightMargin; // 当前列的右边缘
+        var y = TopMargin;
+        var columnWidth = 0.0;
 
-        for (var i = 0; i < count; i++)
+        foreach (var (_, files) in buckets)
         {
-            var col = i % perRow;
-            var row = i / perRow;
+            var (w, h, _) = FenceGeometry.RequiredSize(
+                files.Count, grid, TitleHeight, Padding, maxW, maxH);
 
-            // 从右往左排：最右一列是第 0 个
-            var right = workAreaWidth - RightMargin - col * (width + Gap);
-            var x = Math.Max(0, right - width);
-            var y = TopMargin + row * (FenceHeight + Gap);
+            // 本列纵向放不下就另起一列（向左）
+            if (y + h > workAreaHeight - TopMargin && result.Count > 0)
+            {
+                columnRight -= columnWidth + Gap;
+                y = TopMargin;
+                columnWidth = 0;
+            }
 
-            // 纵向排不下时压缩高度，绝不越出工作区
-            var height = Math.Min(FenceHeight, Math.Max(120, workAreaHeight - y - TopMargin));
+            var x = Math.Max(0, columnRight - w);
+            result.Add(new FenceRect { X = x, Y = y, Width = w, Height = h });
 
-            result.Add(new FenceRect { X = x, Y = y, Width = width, Height = height });
+            y += h + Gap;
+            columnWidth = Math.Max(columnWidth, w);
         }
 
         return result;

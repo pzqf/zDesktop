@@ -363,7 +363,10 @@ public sealed class FenceController : IDisposable
         var primary = MonitorSet.Primary(_space.Monitors.ToList());
         var (_, _, width, height) = primary.WorkAreaDip;
 
-        return FenceProposal.Build(_resolver.Snapshots.Values.ToList(), width, height);
+        // 网格间距必须取真实值：分区尺寸按它算，写死会让分区装不下自己的图标
+        var (cx, cy) = _icons.ItemSpacing;
+
+        return FenceProposal.Build(_resolver.Snapshots.Values.ToList(), width, height, cx, cy);
     }
 
     /// <summary>在桌面上预演建议方案（只画不写）</summary>
@@ -464,6 +467,7 @@ public sealed class FenceController : IDisposable
 
         try
         {
+            EnsureFencesFitContents();
             _sync.SyncToExplorer(_config, _assignments, _space);
 
             if (_background != null)
@@ -527,6 +531,95 @@ public sealed class FenceController : IDisposable
         }
 
         _background.Render(rects);
+    }
+
+    /// <summary>
+    /// 保证每个分区都装得下自己的图标，装不下就撑大。
+    ///
+    /// <para><b>为什么只能撑大</b>：原生图标由 Explorer 渲染，我们只能改它们的坐标、
+    /// 不能裁剪也不能滚动。设计案 §3.1 写的「超出容器高度时容器内滚动」
+    /// 在 Plan A 下不可实现 —— 溢出的图标会直接画到框外面去，
+    /// 看起来就是「分区坏了」。</para>
+    ///
+    /// <para>只加大不缩小：用户手动调小过的分区若被自动缩回去会很恼人，
+    /// 而变大是为了兜住本来就该在框内的图标。</para>
+    /// </summary>
+    private void EnsureFencesFitContents()
+    {
+        var (cx, cy) = _icons.ItemSpacing;
+        if (cx <= 0 || cy <= 0) return;
+
+        // **必须用与写坐标时同一套网格**（含真实原点）。
+        // 曾经这里用 GridSpec(0,0,...) 估算、SyncToExplorer 用 ReadGrid() 的真实原点 (34,2)，
+        // 两边算出的列数不同 → 行数对不上 → 分区撑大了图标仍超框 54 像素。
+        var grid = _sync.ReadGrid();
+        if (!grid.IsValid) return;
+
+        var changed = false;
+
+        foreach (var fence in _config.Fences)
+        {
+            if (fence.Collapsed) continue; // 折叠时不摆图标，无所谓装不装得下
+
+            var count = _assignments.InFence(fence.Id).Count;
+            if (count == 0) continue;
+
+            var monitor = _space.MonitorByKey(fence.MonitorKey);
+            if (monitor == null) continue;
+
+            var iconRect = _space.FenceToIconSpace(fence);
+            if (iconRect == null) continue;
+
+            var (_, _, workW, workH) = monitor.WorkAreaDip;
+            var maxW = Math.Max(cx * 2.0, workW - fence.Rect.X);
+            var maxH = Math.Max(cy * 2.0, workH - fence.Rect.Y);
+
+            // 按真实网格算出最后一个槽位，直接看它是否落在框内 ——
+            // 比「容量 >= 数量」更准：容量是估算，槽位是实际会写下去的坐标
+            var newW = fence.Rect.Width;
+            var newH = fence.Rect.Height;
+
+            // 最多扩几轮：每轮按当前尺寸重算，加宽或加高直到装下或撞上工作区边界
+            for (var attempt = 0; attempt < 12; attempt++)
+            {
+                var probe = new IconRect(iconRect.Value.X, iconRect.Value.Y, (int)newW, (int)newH);
+                var content = FenceGeometry.ContentAreaOf(probe, _sync.TitleHeight, _sync.Padding);
+                var last = FenceGeometry.SlotPosition(content, grid, count - 1);
+
+                // 标签余量：LVM_GETITEMSPACING 报的格高只够单行文件名，
+                // 「Visual Studio Code」这类会折成两行、超出格子往下溢。
+                // 逻辑上没超框，视觉上压线，末行留一点富余。
+                const int labelSlack = 24;
+
+                var overRight = last.X + grid.Cx - content.Right;
+                var overBottom = last.Y + grid.Cy + labelSlack - content.Bottom;
+
+                if (overRight <= 0 && overBottom <= 0) break;
+
+                // 优先加高（分区偏窄好看些）；高度已到顶就加宽
+                if (overBottom > 0 && newH + grid.Cy <= maxH) newH += grid.Cy;
+                else if (newW + grid.Cx <= maxW) newW += grid.Cx;
+                else break; // 工作区放不下了，只能就此打住
+            }
+
+            // 只增不减：用户手动调小过的分区不该被自动缩回去
+            newW = Math.Max(fence.Rect.Width, newW);
+            newH = Math.Max(fence.Rect.Height, newH);
+            if (Math.Abs(newW - fence.Rect.Width) < 0.5 && Math.Abs(newH - fence.Rect.Height) < 0.5) continue;
+
+            Console.WriteLine($"[Fence] 「{fence.Name}」装不下 {count} 个图标，" +
+                              $"尺寸 {fence.Rect.Width:F0}x{fence.Rect.Height:F0} → {newW:F0}x{newH:F0}");
+
+            fence.Rect.Width = newW;
+            fence.Rect.Height = newH;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            foreach (var layer in _layers) layer.RefreshGeometry();
+            Save();
+        }
     }
 
     /// <summary>把合成推迟到操作停止之后，连续编辑只合成最后一次</summary>
@@ -618,6 +711,7 @@ public sealed class FenceController : IDisposable
     {
         _space = FenceCoordinateSpace.Current();
         _sync.ForgetWrittenPositions();
+        _sync.ResetGridCache(); // 分辨率/缩放变化会改变图标间距与格点相位
         RebuildLayers();
         SyncAndCompose();
     }
